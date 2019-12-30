@@ -19,8 +19,8 @@ namespace RT_AutoSprint
 
 	public class RT_AutoSprintMod : BaseUnityPlugin
 	{
-		public const string PluginGuid = "com.RelocityThrawnarchMods.RT_AutoSprint_EXTENDED" + pluginName;
-        private const string pluginName = "RT_AutoSprint_EXTENDED";
+		public const string PluginGuid = "com.RelocityThrawnarchJohnEdwa.RTAutoSprintEXTENDED" + pluginName;
+        private const string pluginName = "RTAutoSprintEXTENDED";
 		private const string pluginVersion = "4478858.1.0";
 
 		private static ConfigWrapper<bool> ArtificerFlamethrowerToggle;

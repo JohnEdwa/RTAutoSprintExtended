@@ -11,7 +11,7 @@ This is a fixed version for the Hidden Realms update, build ID 4478858.
 
 ## Configuration
 * Config file item: `ArtificerFlamethrowerToggle: true/false`: Sets the flamethrower mode. Default is toggle cancellable by pressing the sprint key, alternative is a "Hold to cast" mode.
-* Console command: `rt_artiflamemode`. toggle/true/1, or hold/false/0.
+* Console command: `rt_artiflamemode: `. `toggle/true/1`, or `hold/false/0`.
 
 ## Known (new) Issues
 
@@ -20,7 +20,7 @@ This is a fixed version for the Hidden Realms update, build ID 4478858.
 
 ## Changelog
 
-'4478858.1.0' - Initial Version (Based on 1.0.5), fixed, and added Artificer flamethrower config.
+`4478858.1.0` - Initial Version (Based on 1.0.5), fixed, and added Artificer flamethrower config.
 
 ---
 
@@ -57,7 +57,7 @@ Whenever you could be sprinting in the base game, this mod makes you sprint. Inc
 
 ### Changelog
 
-'1.0.5' - Hopefully fixed an issue that was throwing a ton of NullReferenceException reports, creating a ton of lag in multiplayer games.
+`1.0.5` - Hopefully fixed an issue that was throwing a ton of NullReferenceException reports, creating a ton of lag in multiplayer games.
 
 `1.0.4` - No longer cancels Artificer ult skill!
 

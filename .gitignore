@@ -10,6 +10,7 @@
 *.sln.docstates
 libs/
 .vscode/
+.gitattributes
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

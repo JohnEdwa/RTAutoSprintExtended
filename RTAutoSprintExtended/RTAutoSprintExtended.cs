@@ -17,7 +17,7 @@ namespace RT_AutoSprint
 	[BepInDependency("com.bepis.r2api")]
 	[BepInPlugin(PluginGuid, pluginName, pluginVersion)]
 
-	public class RT_AutoSprintMod : BaseUnityPlugin
+	public class RTAutoSprintEXTENDED : BaseUnityPlugin
 	{
 		public const string PluginGuid = "com.RelocityThrawnarchJohnEdwa.RTAutoSprintEXTENDED" + pluginName;
         private const string pluginName = "RTAutoSprintEXTENDED";
@@ -31,7 +31,7 @@ namespace RT_AutoSprint
 
 		public void Awake()
 		{
-			RT_AutoSprintMod.RT_num = 0.0;
+			RTAutoSprintEXTENDED.RT_num = 0.0;
 
 		// Configuration
 			On.RoR2.Console.Awake += (orig, self) => {
@@ -49,25 +49,25 @@ namespace RT_AutoSprint
 		// Artificer Flamethrower logic
 			On.EntityStates.Mage.Weapon.Flamethrower.OnEnter += (orig, self) => {
 				if (ArtificerFlamethrowerToggle.Value) {
-					RT_AutoSprintMod.RT_flameOn = true;
-				} else RT_AutoSprintMod.RT_flameOn = false;
+					RTAutoSprintEXTENDED.RT_flameOn = true;
+				} else RTAutoSprintEXTENDED.RT_flameOn = false;
 				orig(self);
 			};
 			On.EntityStates.Mage.Weapon.Flamethrower.FixedUpdate += (orig, self) => {
 				if (Input.GetKeyDown(KeyCode.LeftShift)) {
-					RT_AutoSprintMod.RT_flameOn = false;
+					RTAutoSprintEXTENDED.RT_flameOn = false;
 				}
 				orig(self);
 			};
 
 			On.EntityStates.Mage.Weapon.Flamethrower.OnExit += (orig, self) => {
-				RT_AutoSprintMod.RT_flameOn = false;
+				RTAutoSprintEXTENDED.RT_flameOn = false;
 				orig(self);
 			};
 
 		// Sprinting logic
 			On.RoR2.PlayerCharacterMasterController.FixedUpdate += delegate(On.RoR2.PlayerCharacterMasterController.orig_FixedUpdate orig, RoR2.PlayerCharacterMasterController self) {
-				RT_AutoSprintMod.RT_autoSprint = false;
+				RTAutoSprintEXTENDED.RT_autoSprint = false;
 				bool flag = false;
 				RoR2.NetworkUser networkUser = self.networkUser;
 				RoR2.InputBankTest instanceField = self.GetInstanceField<RoR2.InputBankTest>("bodyInputs");
@@ -79,18 +79,18 @@ namespace RT_AutoSprint
 						RoR2.CharacterBody instanceField2 = self.GetInstanceField<RoR2.CharacterBody>("body");
 						bool flag4 = instanceField2;
 						if (flag4) {
-							RT_AutoSprintMod.RT_autoSprint = instanceField2.isSprinting;
-							bool flag5 = !RT_AutoSprintMod.RT_autoSprint;
+							RTAutoSprintEXTENDED.RT_autoSprint = instanceField2.isSprinting;
+							bool flag5 = !RTAutoSprintEXTENDED.RT_autoSprint;
 							if (flag5) {
-								bool flag6 = RT_AutoSprintMod.RT_num > 0.1;
+								bool flag6 = RTAutoSprintEXTENDED.RT_num > 0.1;
 								bool flag7 = flag6;
 								if (flag7) {
-									RT_AutoSprintMod.RT_autoSprint = !RT_AutoSprintMod.RT_autoSprint;
-									RT_AutoSprintMod.RT_num = 0.0;
+									RTAutoSprintEXTENDED.RT_autoSprint = !RTAutoSprintEXTENDED.RT_autoSprint;
+									RTAutoSprintEXTENDED.RT_num = 0.0;
 								}
 								bool flag8 = instanceField2.baseNameToken == "MAGE_BODY_NAME";
 								if (flag8) {
-									flag = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SpecialSkill") && !inputPlayer.GetButton("UtilitySkill") && !RT_AutoSprintMod.RT_flameOn);
+									flag = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SpecialSkill") && !inputPlayer.GetButton("UtilitySkill") && !RTAutoSprintEXTENDED.RT_flameOn);
 								} else {
 									bool flag9 = instanceField2.baseNameToken == "ENGI_BODY_NAME";
 									if (flag9) {
@@ -112,11 +112,11 @@ namespace RT_AutoSprint
 							}
 							bool flag12 = flag;
 							if (flag12) {
-								RT_AutoSprintMod.RT_num += (double)Time.deltaTime;
+								RTAutoSprintEXTENDED.RT_num += (double)Time.deltaTime;
 							} else {
-								RT_AutoSprintMod.RT_num = 0.0;
+								RTAutoSprintEXTENDED.RT_num = 0.0;
 							}
-							bool rt_autoSprint = RT_AutoSprintMod.RT_autoSprint;
+							bool rt_autoSprint = RTAutoSprintEXTENDED.RT_autoSprint;
 							if (rt_autoSprint) {
 								Vector3 aimDirection = instanceField.aimDirection;
 								aimDirection.y = 0f;
@@ -126,7 +126,7 @@ namespace RT_AutoSprint
 								moveVector.Normalize();
 								bool flag13 = Vector3.Dot(aimDirection, moveVector) < self.GetInstanceField<float>("sprintMinAimMoveDot");
 								if (flag13) {
-									RT_AutoSprintMod.RT_autoSprint = false;
+									RTAutoSprintEXTENDED.RT_autoSprint = false;
 								}
 							}
 						}
@@ -135,7 +135,7 @@ namespace RT_AutoSprint
 				orig.Invoke(self);
 				bool flag14 = instanceField;
 				if (flag14) {
-					instanceField.sprint.PushState(RT_AutoSprintMod.RT_autoSprint);
+					instanceField.sprint.PushState(RTAutoSprintEXTENDED.RT_autoSprint);
 				}
 			};
 			Debug.Log("Loaded RT AutoSprint Extended\nArtificer flamethrower mode is " + ((ArtificerFlamethrowerToggle.Value) ? " [toggle]." : " [hold]."));

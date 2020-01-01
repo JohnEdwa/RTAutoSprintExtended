@@ -24,6 +24,7 @@ namespace RT_AutoSprint
 		private const string pluginVersion = "4478858.1.1";
 
 		private static ConfigWrapper<bool> ArtificerFlamethrowerToggle;
+		private static ConfigWrapper<bool> EngineerAllowM2Sprint;
 		
 
 		private static double RT_num;
@@ -46,7 +47,12 @@ namespace RT_AutoSprint
 				"Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).",
 				true
 			);
-
+			EngineerAllowM2Sprint = Config.Wrap<bool>(
+				"Engineer",
+				"EngineerM2Sprint",
+				"Allows Engineer to auto-sprint between throwing mines. Looks really janky but technically possible.",
+				false
+			);
 
 
 		// Artificer Flamethrower workaround logic
@@ -94,7 +100,8 @@ namespace RT_AutoSprint
 										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SpecialSkill") && !inputPlayer.GetButton("UtilitySkill") && !RTAutoSprintEXTENDED.RT_flameOn);
 										break;
 									case "ENGI_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("UtilitySkill"));
+										if (EngineerAllowM2Sprint.Value) skillsAllowAutoSprint = (!inputPlayer.GetButton("UtilitySkill"));
+										else  skillsAllowAutoSprint = (!inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("UtilitySkill"));
 										break;									
 									case "HUNTRESS_BODY_NAME":
 										skillsAllowAutoSprint = (!inputPlayer.GetButton("SpecialSkill"));

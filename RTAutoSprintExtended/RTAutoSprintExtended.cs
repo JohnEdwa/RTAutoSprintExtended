@@ -17,10 +17,10 @@ namespace RT_AutoSprint
 	[BepInDependency("com.bepis.r2api")]
 	[BepInPlugin(pluginGuid, pluginName, pluginVersion)]
 
-	public class RTAutoSprintEXTENDED : BaseUnityPlugin
+	public class RTAutoSprintEx : BaseUnityPlugin
 	{
 		public const string pluginGuid = "com.RelocityThrawnarchJohnEdwa" + pluginName;
-        private const string pluginName = "RTAutoSprintEXTENDED";
+        private const string pluginName = "RTAutoSprintEx";
 		private const string pluginVersion = "4478858.1.1";
 
 		private static ConfigWrapper<bool> ArtificerFlamethrowerToggle;
@@ -33,7 +33,7 @@ namespace RT_AutoSprint
 
 		public void Awake()
 		{
-			RTAutoSprintEXTENDED.RT_num = 0.0;
+			RTAutoSprintEx.RT_num = 0.0;
 
 		// Configuration
 			On.RoR2.Console.Awake += (orig, self) => {
@@ -58,26 +58,26 @@ namespace RT_AutoSprint
 		// Artificer Flamethrower workaround logic
 			On.EntityStates.Mage.Weapon.Flamethrower.OnEnter += (orig, self) => {
 				if (ArtificerFlamethrowerToggle.Value) {
-					RTAutoSprintEXTENDED.RT_flameOn = true;
-				} else RTAutoSprintEXTENDED.RT_flameOn = false;
+					RTAutoSprintEx.RT_flameOn = true;
+				} else RTAutoSprintEx.RT_flameOn = false;
 				orig(self);
 			};
 			On.EntityStates.Mage.Weapon.Flamethrower.FixedUpdate += (orig, self) => {
 				// This is for cancelling mid-cast by hitting Sprint
 				if (Input.GetKeyDown(KeyCode.LeftShift)) {
-					RTAutoSprintEXTENDED.RT_flameOn = false;
+					RTAutoSprintEx.RT_flameOn = false;
 				}
 				orig(self);
 			};
 
 			On.EntityStates.Mage.Weapon.Flamethrower.OnExit += (orig, self) => {
-				RTAutoSprintEXTENDED.RT_flameOn = false;
+				RTAutoSprintEx.RT_flameOn = false;
 				orig(self);
 			};
 
 		// Sprinting logic
 			On.RoR2.PlayerCharacterMasterController.FixedUpdate += delegate(On.RoR2.PlayerCharacterMasterController.orig_FixedUpdate orig, RoR2.PlayerCharacterMasterController self) {
-				RTAutoSprintEXTENDED.RT_isSprinting = false;
+				RTAutoSprintEx.RT_isSprinting = false;
 				bool skillsAllowAutoSprint = false;
 				RoR2.NetworkUser networkUser = self.networkUser;
 				RoR2.InputBankTest instanceFieldBodyInputs = self.GetInstanceField<RoR2.InputBankTest>("bodyInputs");
@@ -86,18 +86,18 @@ namespace RT_AutoSprint
 						Player inputPlayer = networkUser.localUser.inputPlayer;
 						RoR2.CharacterBody instanceFieldBody = self.GetInstanceField<RoR2.CharacterBody>("body");
 						if (instanceFieldBody) {
-							RTAutoSprintEXTENDED.RT_isSprinting = instanceFieldBody.isSprinting;
-							if (!RTAutoSprintEXTENDED.RT_isSprinting) {
-								if (RTAutoSprintEXTENDED.RT_num > 0.1) {
-									RTAutoSprintEXTENDED.RT_isSprinting = !RTAutoSprintEXTENDED.RT_isSprinting;
-									RTAutoSprintEXTENDED.RT_num = 0.0;
+							RTAutoSprintEx.RT_isSprinting = instanceFieldBody.isSprinting;
+							if (!RTAutoSprintEx.RT_isSprinting) {
+								if (RTAutoSprintEx.RT_num > 0.1) {
+									RTAutoSprintEx.RT_isSprinting = !RTAutoSprintEx.RT_isSprinting;
+									RTAutoSprintEx.RT_num = 0.0;
 								}
 								switch(instanceFieldBody.baseNameToken){
 									case "COMMANDO_BODY_NAME":
 										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
 										break;
 									case "MAGE_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SpecialSkill") && !inputPlayer.GetButton("UtilitySkill") && !RTAutoSprintEXTENDED.RT_flameOn);
+										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SpecialSkill") && !inputPlayer.GetButton("UtilitySkill") && !RTAutoSprintEx.RT_flameOn);
 										break;
 									case "ENGI_BODY_NAME":
 										if (EngineerAllowM2Sprint.Value) skillsAllowAutoSprint = (!inputPlayer.GetButton("UtilitySkill"));
@@ -121,12 +121,12 @@ namespace RT_AutoSprint
 								}
 							}
 							if (skillsAllowAutoSprint) {
-								RTAutoSprintEXTENDED.RT_num += (double)Time.deltaTime;
+								RTAutoSprintEx.RT_num += (double)Time.deltaTime;
 							} else {
-								RTAutoSprintEXTENDED.RT_num = 0.0;
+								RTAutoSprintEx.RT_num = 0.0;
 							}
 							// Disable sprinting if we movement angle is too large
-							if (RTAutoSprintEXTENDED.RT_isSprinting) {
+							if (RTAutoSprintEx.RT_isSprinting) {
 								Vector3 aimDirection = instanceFieldBodyInputs.aimDirection;
 								aimDirection.y = 0f;
 								aimDirection.Normalize();
@@ -134,7 +134,7 @@ namespace RT_AutoSprint
 								moveVector.y = 0f;
 								moveVector.Normalize();
 								if (Vector3.Dot(aimDirection, moveVector) < self.GetInstanceField<float>("sprintMinAimMoveDot")) {
-									RTAutoSprintEXTENDED.RT_isSprinting = false;
+									RTAutoSprintEx.RT_isSprinting = false;
 								}
 							}
 						}
@@ -142,7 +142,7 @@ namespace RT_AutoSprint
 				}
 				orig.Invoke(self);
 				if (instanceFieldBodyInputs) {
-					instanceFieldBodyInputs.sprint.PushState(RTAutoSprintEXTENDED.RT_isSprinting);
+					instanceFieldBodyInputs.sprint.PushState(RTAutoSprintEx.RT_isSprinting);
 				}
 			};
 			Debug.Log("Loaded RT AutoSprint Extended\nArtificer flamethrower mode is " + ((ArtificerFlamethrowerToggle.Value) ? " [toggle]." : " [hold]."));

@@ -28,9 +28,10 @@ This is a fixed version for the Hidden Realms update, build ID 4478858.
 
 ## Changelog
 
-`4478858.1.1` - 
+`4478858.1.1`
  * Cleaned the code. 
  * Added Acrid and Loader, fixed Commando, Huntress, Engi not being allowed to autosprint during some skills they are able to. 
+ * MUL-T primary weapons autosprint when possible.
  * Added Engi M2 config option.
 
 `4478858.1.0` - Initial Version (Based on 1.0.5), fixed, and added Artificer flamethrower config.

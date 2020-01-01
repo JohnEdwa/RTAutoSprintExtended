@@ -119,7 +119,10 @@ namespace RT_AutoSprint
 		// MUL-T workaround logic, disable sprinting while using the Nailgun, Scrap Launcher, or Stun Grenade.
 			//Nailgun
 			On.EntityStates.FireNailgun.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
-			On.EntityStates.FireNailgun.FixedUpdate += (orig, self) => {orig(self); RTAutoSprintEx.RT_tempDisable = !this.beginToCooldown;};
+			On.EntityStates.FireNailgun.FixedUpdate += (orig, self) => {
+				orig(self); 
+				if (self.GetFieldValue<bool>("beginToCooldown")) {RTAutoSprintEx.RT_tempDisable = false;};
+			};
 			// Scrap Launcher
 			On.EntityStates.Toolbot.RecoverAimStunDrone.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
 			On.EntityStates.Toolbot.RecoverAimStunDrone.OnExit += (orig, self) => { RTAutoSprintEx.RT_tempDisable = false; orig(self); };

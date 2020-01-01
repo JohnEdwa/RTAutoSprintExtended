@@ -1,4 +1,52 @@
-﻿using System;
+﻿
+/*
+RTAutoSprintEx, original by Relocity and Tharwnarch, fixed and extended by JohnEdwa
+
+Character names: x_BODY_NAME
+COMMANDO, MAGE, ENGI, MERC, HUNTRESS, TOOLBOT
+
+
+Skill notes:
+
+Commando:
+	PRI soft-blocks sprinting
+	SEC, SPL, UTI cancels sprint
+
+Huntress:
+	PRI allows spriting
+	SEC, SPC UTI cancels sprint
+
+MUL-T
+	Nailgun stops on sprint.
+	Rebar-puncher cancels, but allows while charging.
+	Scrap-launcher cancels sprint.
+	Buzz-saw allows sprinting while firing.
+	
+	SEC casts if you sprint.
+	UTI makes you sprint afterwards.
+	
+REX:
+	PRI cancels sprint.
+	Drill casts on sprinting.
+	Boop cancels sprint.
+	Succ cancels sprint,
+
+Engineer:
+ * PRI cancels sprint, can spring while charging.
+ * SEC cancels sprint
+ * SPL cancels sprint, can spring while charging.
+
+Artificer: 
+ * (SPL) Flamethrower, stops casting
+ * (UTI) Ice Wall, forces a cast
+
+Acrid:
+ * Melee and Sprint have annoying animation cancelling - wontfix: waiting for official fix
+ * Sprint only cancelled by melee.
+
+*/
+
+using System;
 using System.Reflection;
 using System.Collections;
 using System.Linq;
@@ -24,13 +72,18 @@ namespace RT_AutoSprint
 		private const string pluginVersion = "4478858.1.1";
 
 		private static ConfigWrapper<bool> ArtificerFlamethrowerToggle;
+		private static ConfigWrapper<bool> EngineerAllowM2Sprint;
 
 		private static double RT_num;
 		public static bool RT_isSprinting;
-		public static bool RT_flameOn;
+		public static bool RT_tempDisable;
+
+		public static bool RT_enabled = true;
+		public static bool RT_allowall = false;
 
 		public void Awake()
 		{
+
 			RTAutoSprintEx.RT_num = 0.0;
 
 		// Configuration
@@ -55,26 +108,36 @@ namespace RT_AutoSprint
 
 		// Artificer Flamethrower workaround logic
 			On.EntityStates.Mage.Weapon.Flamethrower.OnEnter += (orig, self) => {
-				if (ArtificerFlamethrowerToggle.Value) {
-					RTAutoSprintEx.RT_flameOn = true;
-				} else RTAutoSprintEx.RT_flameOn = false;
+				RTAutoSprintEx.RT_tempDisable = ArtificerFlamethrowerToggle.Value;
 				orig(self);
 			};
-			On.EntityStates.Mage.Weapon.Flamethrower.FixedUpdate += (orig, self) => {
-				// This is for cancelling mid-cast by hitting Sprint
-				if (Input.GetKeyDown(KeyCode.LeftShift)) {
-					RTAutoSprintEx.RT_flameOn = false;
-				}
-				orig(self);
+			On.EntityStates.Mage.Weapon.Flamethrower.OnExit += (orig, self) => { 
+				RTAutoSprintEx.RT_tempDisable = false; 
+				orig(self);	
 			};
 
-			On.EntityStates.Mage.Weapon.Flamethrower.OnExit += (orig, self) => {
-				RTAutoSprintEx.RT_flameOn = false;
-				orig(self);
-			};
+		// MUL-T workaround logic, disable sprinting while using the Nailgun, Scrap Launcher, or Stun Grenade.
+			//Nailgun
+			On.EntityStates.FireNailgun.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
+			On.EntityStates.FireNailgun.FixedUpdate += (orig, self) => {orig(self); RTAutoSprintEx.RT_tempDisable = !this.beginToCooldown;};
+			// Scrap Launcher
+			On.EntityStates.Toolbot.RecoverAimStunDrone.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
+			On.EntityStates.Toolbot.RecoverAimStunDrone.OnExit += (orig, self) => { RTAutoSprintEx.RT_tempDisable = false; orig(self); };
+			// Stun Grenade (M2)
+			On.EntityStates.Toolbot.AimStunDrone.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
+			On.EntityStates.Toolbot.AimStunDrone.OnExit += (orig, self) => { RTAutoSprintEx.RT_tempDisable = false; orig(self); };
 
 		// Sprinting logic
 			On.RoR2.PlayerCharacterMasterController.FixedUpdate += delegate(On.RoR2.PlayerCharacterMasterController.orig_FixedUpdate orig, RoR2.PlayerCharacterMasterController self) {
+				if (Input.GetKeyDown(KeyCode.F2)) {
+					RTAutoSprintEx.RT_enabled = !RTAutoSprintEx.RT_enabled;
+					RoR2.Chat.AddMessage("RTAutoSprintEx " + ((RTAutoSprintEx.RT_enabled) ? " enabled." : " disabled."));
+				}
+				if (Input.GetKeyDown(KeyCode.F3)) {
+					RTAutoSprintEx.RT_allowall = !RTAutoSprintEx.RT_allowall;
+					RoR2.Chat.AddMessage("RTAutoSprintEx All Skills Autosprint" + ((RTAutoSprintEx.RT_allowall) ? " enabled." : " disabled."));
+				}
+				
 				RTAutoSprintEx.RT_isSprinting = false;
 				bool skillsAllowAutoSprint = false;
 				RoR2.NetworkUser networkUser = self.networkUser;
@@ -90,32 +153,44 @@ namespace RT_AutoSprint
 									RTAutoSprintEx.RT_isSprinting = !RTAutoSprintEx.RT_isSprinting;
 									RTAutoSprintEx.RT_num = 0.0;
 								}
+								if (RTAutoSprintEx.RT_allowall) skillsAllowAutoSprint = true;
+								else {
 								switch(instanceFieldBody.baseNameToken){
 									case "COMMANDO_BODY_NAME":
 										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
 										break;
+									case "HUNTRESS_BODY_NAME":
+										skillsAllowAutoSprint = (!inputPlayer.GetButton("SpecialSkill"));
+										break;
 									case "MAGE_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SpecialSkill") && !inputPlayer.GetButton("UtilitySkill") && !RTAutoSprintEx.RT_flameOn);
+										if (ArtificerFlamethrowerToggle.Value) RTAutoSprintEx.RT_tempDisable = inputPlayer.GetButton("Sprint"); // Cancel flamethrower if sprint key is pressed.
+										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SpecialSkill") && !inputPlayer.GetButton("UtilitySkill") && !RTAutoSprintEx.RT_tempDisable);
 										break;
 									case "ENGI_BODY_NAME":
 										if (EngineerAllowM2Sprint.Value) skillsAllowAutoSprint = (!inputPlayer.GetButton("UtilitySkill"));
 										else skillsAllowAutoSprint = (!inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("UtilitySkill"));
 										break;									
-									case "HUNTRESS_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("SpecialSkill"));
-										break;
 									case "MERC_BODY_NAME":
+	// ToDo: check all skills
+	// Merc secondary cancels, check if it can work
 										skillsAllowAutoSprint = (!inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
+										break;
+									case "TREEBOT_BODY_NAME":
+										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
 										break;
 									case "LOADER_BODY_NAME":
 										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
 										break;											
-									case "ACRID_BODY_NAME":
+									case "CROCO_BODY_NAME":
 										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
+										break;
+									case "TOOLBOT_BODY_NAME":
+										skillsAllowAutoSprint = (!inputPlayer.GetButton("SpecialSkill") && !RTAutoSprintEx.RT_tempDisable);
 										break;
 									default:
 										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
 										break;
+								}
 								}
 							}
 							if (skillsAllowAutoSprint) {
@@ -139,7 +214,7 @@ namespace RT_AutoSprint
 					}
 				}
 				orig.Invoke(self);
-				if (instanceFieldBodyInputs) {
+				if (instanceFieldBodyInputs && RTAutoSprintEx.RT_enabled) {
 					instanceFieldBodyInputs.sprint.PushState(RTAutoSprintEx.RT_isSprinting);
 				}
 			};

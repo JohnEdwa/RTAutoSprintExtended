@@ -7,18 +7,31 @@ This is a fixed version for the Hidden Realms update, build ID 4478858.
 
 ## Differences to the old version
 * Works, for one thing
+* Commando, Huntress and Engineer autosprint during more skills (still something a player could do by themselves).
+* Added Loader and Acrid with proper autosprinting.
 * Artificer Flamethrower mode is configurable.
+* Engineer can be allowed to sprint between deploying mines.
 
 ## Configuration
-* Config file item: `ArtificerFlamethrowerToggle: true/false`: Sets the flamethrower mode. Default is toggle cancellable by pressing the sprint key, alternative is a "Hold to cast" mode.
-* Console command: `rt_artiflamemode: `. `toggle/true/1`, or `hold/false/0`.
+* Config file item: `ArtificerFlamethrowerToggle: [true]/false`: Sets the flamethrower mode. Default is toggle cancellable by pressing the sprint key, alternative is a "Hold to cast" mode. Has a console command so you can change it on the fly: `rt_artiflamemode: `. `toggle/true/1`, or `hold/false/0`.
+* Config file item: `EngineerAllowM2Sprint: true/[false]`: When true, sprints between laying mines. Looks janky, but technically possible to do. As a positive, holding M2 doesn't disable sprinting anymore.
 
-## Known (new) Issues
+## Known Issues
 
 * Acrid M1 animation cancellation is very pronounced with this mod. Waiting for the official fix before trying for a workaround.
+* MUL-T Stun Grenade (M2) starts sprinting only after the put-away animation (~1s delay), although he could start right after firing.
 
+## To-Do (hopefully)
+
+* Change holding sprint to a walk button.
+* Disable the generic sprinting crosshair.
 
 ## Changelog
+
+`4478858.1.1` - 
+ * Cleaned the code. 
+ * Added Acrid and Loader, fixed Commando, Huntress, Engi not being allowed to autosprint during some skills they are able to. 
+ * Added Engi M2 config option.
 
 `4478858.1.0` - Initial Version (Based on 1.0.5), fixed, and added Artificer flamethrower config.
 
@@ -45,7 +58,7 @@ Whenever you could be sprinting in the base game, this mod makes you sprint. Inc
 
 ## Installation Guide
 
-- Copy the 'RT_AutoSprint.dll' file to your BepInEx plugins folder.
+- Copy the 'RTAutoSprintEx.dll' file to your BepInEx plugins folder.
 
 - Never press sprint again.
 

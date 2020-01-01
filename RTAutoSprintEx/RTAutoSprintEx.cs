@@ -129,6 +129,12 @@ namespace RT_AutoSprint
 			// Stun Grenade (M2)
 			On.EntityStates.Toolbot.AimStunDrone.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
 			On.EntityStates.Toolbot.AimStunDrone.OnExit += (orig, self) => { RTAutoSprintEx.RT_tempDisable = false; orig(self); };
+		// REX workaround logic
+			On.EntityStates.Treebot.Weapon.AimMortar.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
+			On.EntityStates.Treebot.Weapon.AimMortar.OnExit += (orig, self) => { RTAutoSprintEx.RT_tempDisable = false; orig(self); };
+			On.EntityStates.Treebot.Weapon.AimMortar2.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
+			On.EntityStates.Treebot.Weapon.AimMortar2.OnProjectileFiredLocal += (orig, self) => { RTAutoSprintEx.RT_tempDisable = false; orig(self); };
+
 
 		// Sprinting logic
 			On.RoR2.PlayerCharacterMasterController.FixedUpdate += delegate(On.RoR2.PlayerCharacterMasterController.orig_FixedUpdate orig, RoR2.PlayerCharacterMasterController self) {
@@ -179,7 +185,7 @@ namespace RT_AutoSprint
 										skillsAllowAutoSprint = (!inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
 										break;
 									case "TREEBOT_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
+										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !RTAutoSprintEx.RT_tempDisable);
 										break;
 									case "LOADER_BODY_NAME":
 										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
@@ -188,7 +194,7 @@ namespace RT_AutoSprint
 										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
 										break;
 									case "TOOLBOT_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("SpecialSkill") && !RTAutoSprintEx.RT_tempDisable);
+										skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
 										break;
 									default:
 										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));

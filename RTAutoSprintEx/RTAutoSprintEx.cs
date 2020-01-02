@@ -21,7 +21,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	public const string
 		NAME = "RTAutoSprintEx",
 		GUID = "com.johnedwa." + NAME,
-		VERSION = "4478858.1.1";
+		VERSION = "1.0.0";
 
 	private static ConfigWrapper<bool> ArtificerFlamethrowerToggle;
 	private static ConfigWrapper<bool> HoldSprintToWalk;
@@ -178,7 +178,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 						}
 						if (!RTAutoSprintEx.RT_isSprinting) RTAutoSprintEx.RT_num += (double)Time.deltaTime;
 
-					// Disable sprinting if we movement angle is too large
+					// Disable sprinting if the movement angle is too large
 						if (RTAutoSprintEx.RT_isSprinting) {
 							Vector3 aimDirection = instanceFieldBodyInputs.aimDirection;
 							aimDirection.y = 0f;
@@ -211,14 +211,10 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	private static void RTArtiFlameMode(RoR2.ConCommandArgs args) {
 		args.CheckArgumentCount(1);
 		switch (args[0].ToLower()) {
-			case "toggle":
-			case "true":
-			case "1":
+			case "toggle": case "true": case "1":
 				ArtificerFlamethrowerToggle.Value = true;
 				break;
-			case "hold":
-			case "false":
-			case "0":
+			case "hold": case "false": case "0":
 				ArtificerFlamethrowerToggle.Value = false;
 				break;
 			default:

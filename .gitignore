@@ -9,6 +9,7 @@
 *.userosscache
 *.sln.docstates
 libs/
+releases/
 .vscode/
 .gitattributes
 *.psd

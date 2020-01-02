@@ -42,7 +42,7 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 `1.0.2`
  * Fixed the readme and manifest version.
 
-`1.0.0`
+`1.0.1`
  * Initial release.
 
 `0.2.0`

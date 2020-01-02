@@ -56,8 +56,8 @@ using Rewired;
 using UnityEngine;
 using R2API.Utils;
 using RoR2;
-
-
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
 
 
 namespace RT_AutoSprint
@@ -134,6 +134,18 @@ namespace RT_AutoSprint
 			On.EntityStates.Treebot.Weapon.AimMortar.OnExit += (orig, self) => { RTAutoSprintEx.RT_tempDisable = false; orig(self); };
 			On.EntityStates.Treebot.Weapon.AimMortar2.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
 			On.EntityStates.Treebot.Weapon.AimMortar2.OnProjectileFiredLocal += (orig, self) => { RTAutoSprintEx.RT_tempDisable = false; orig(self); };
+
+		// Disable sprinting crosshair
+			IL.RoR2.UI.CrosshairManager.UpdateCrosshair += (il) => {
+				ILCursor c = new ILCursor(il);
+					c.GotoNext(
+						x => x.MatchLdarg(1),
+						x => x.MatchCallvirt<CharacterBody>("get_isSprinting")
+						);
+					c.Index += 0;
+					c.RemoveRange(2);
+					c.Emit(OpCodes.Ldc_I4, 0);	
+			};  
 
 
 		// Sprinting logic

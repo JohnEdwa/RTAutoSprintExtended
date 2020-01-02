@@ -7,8 +7,9 @@ This is a fixed version for the Hidden Realms update, build ID 4478858.
 
 ## Differences to the old version
 * Works, for one thing
+* Shows the correct crosshairs, instead of the useless sprinting chevron.
 * Commando, Huntress and Engineer autosprint during more skills (still something a player could do by themselves).
-* Added Loader and Acrid with proper autosprinting.
+* Added REX, Loader and Acrid with proper autosprinting.
 * Artificer Flamethrower mode is configurable.
 * Engineer can be allowed to sprint between deploying mines.
 
@@ -30,9 +31,10 @@ This is a fixed version for the Hidden Realms update, build ID 4478858.
 
 `4478858.1.1`
  * Cleaned the code. 
- * Added Acrid and Loader, fixed Commando, Huntress, Engi not being allowed to autosprint during some skills they are able to. 
+ * Added REX, Acrid and Loader, fixed Commando, Huntress, Engi not being allowed to autosprint during some skills they are able to. 
  * MUL-T primary weapons autosprint when possible.
  * Added Engi M2 config option.
+ * Removed the useless Spriting crosshair.
 
 `4478858.1.0` - Initial Version (Based on 1.0.5), fixed, and added Artificer flamethrower config.
 

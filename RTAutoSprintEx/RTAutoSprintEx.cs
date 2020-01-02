@@ -75,18 +75,19 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	private static ConfigWrapper<bool> HoldSprintToWalk;
 	private static ConfigWrapper<bool> DisableSprintingCrosshair;
 
-	private static double RT_num = 0.0;
-	public static bool RT_enabled = true;
-	public static bool RT_isSprinting = false;
-	public static bool RT_artiFlaming = false;
-	public static bool RT_tempDisable = false;
-	public static bool RT_allowall = false;
+	private static double RT_num;
+	public static bool RT_enabled;
+	public static bool RT_isSprinting;
+	public static bool RT_artiFlaming;
+	public static bool RT_tempDisable;	
 
 	public void Awake() {
 
 		RTAutoSprintEx.RT_num = 0.0;
 		RTAutoSprintEx.RT_enabled = true;
-		RTAutoSprintEx.RT_allowall = false;
+		RTAutoSprintEx.RT_isSprinting = false;
+		RTAutoSprintEx.RT_artiFlaming = false;
+		RTAutoSprintEx.RT_tempDisable = false;
 
 	// Configuration
 		On.RoR2.Console.Awake += (orig, self) => {
@@ -123,6 +124,13 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 			RTAutoSprintEx.RT_tempDisable = false; 
 			orig(self);	
 		};
+	// Artificer bolt logic
+		On.EntityStates.Mage.Weapon.FireFireBolt.OnEnter += (orig, self) => { RTAutoSprintEx.RT_num = -0.2; orig(self); };
+		On.EntityStates.Mage.Weapon.FireLaserbolt.OnEnter += (orig, self) => { RTAutoSprintEx.RT_num = -0.2; orig(self); };
+
+	// Engineer mine workaround
+		On.EntityStates.Engi.EngiWeapon.FireMines.OnEnter += (orig, self) => { RTAutoSprintEx.RT_num = -0.4; orig(self); };
+		On.EntityStates.Engi.EngiWeapon.FireSeekerGrenades.OnEnter += (orig, self) => { RTAutoSprintEx.RT_num = -0.4; orig(self); };
 
 	// MUL-T workaround logic, disable sprinting while using the Nailgun, Scrap Launcher, or Stun Grenade.
 		//Nailgun
@@ -131,11 +139,9 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 			orig(self); 
 			if (self.GetFieldValue<bool>("beginToCooldown")) {RTAutoSprintEx.RT_tempDisable = false;};
 		};
-		// Scrap Launcher
-		On.EntityStates.Toolbot.AimGrenade.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
 		// Stun Grenade (M2)
-		On.EntityStates.Toolbot.AimStunDrone.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
-		On.EntityStates.Toolbot.RecoverAimStunDrone.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = false; orig(self); };
+		On.EntityStates.Toolbot.AimGrenade.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
+		On.EntityStates.Toolbot.RecoverAimStunDrone.OnEnter += (orig, self) => {RTAutoSprintEx.RT_tempDisable = false; orig(self); };
 
 	// REX workaround logic
 		On.EntityStates.Treebot.Weapon.AimMortar.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
@@ -164,10 +170,6 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 				RTAutoSprintEx.RT_enabled = !RTAutoSprintEx.RT_enabled;
 				RoR2.Chat.AddMessage("RTAutoSprintEx " + ((RTAutoSprintEx.RT_enabled) ? " enabled." : " disabled."));
 			}
-			if (Input.GetKeyDown(KeyCode.F3)) {
-				RTAutoSprintEx.RT_allowall = !RTAutoSprintEx.RT_allowall;
-				RoR2.Chat.AddMessage("RTAutoSprintEx All Skills Autosprint" + ((RTAutoSprintEx.RT_allowall) ? " enabled." : " disabled."));
-			}
 			
 			if (RTAutoSprintEx.RT_enabled) {
 				RTAutoSprintEx.RT_isSprinting = false;
@@ -182,49 +184,46 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 							RTAutoSprintEx.RT_isSprinting = instanceFieldBody.isSprinting;
 							if (!RTAutoSprintEx.RT_isSprinting) {
 								if (RTAutoSprintEx.RT_num > 0.1) {
-									RTAutoSprintEx.RT_isSprinting = !RTAutoSprintEx.RT_isSprinting;
 									RTAutoSprintEx.RT_num = 0.0;
-								}
-								switch(instanceFieldBody.baseNameToken){
-									case "COMMANDO_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
-										break;
-									case "HUNTRESS_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("SpecialSkill"));
-										break;
-									case "MAGE_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SpecialSkill") && !inputPlayer.GetButton("UtilitySkill") && !RTAutoSprintEx.RT_tempDisable);
-										break;
-									case "ENGI_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("SecondarySkill"));
-										break;									
-									case "MERC_BODY_NAME":
-	// ToDo: check all skills
-	// Merc secondary cancels, check if it can work
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
-										break;
-									case "TREEBOT_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !RTAutoSprintEx.RT_tempDisable);
-										break;
-									case "LOADER_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
-										break;											
-									case "CROCO_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
-										break;
-									case "TOOLBOT_BODY_NAME":
-										skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
-										break;
-									default:
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
-										break;
+									switch(instanceFieldBody.baseNameToken){
+										case "COMMANDO_BODY_NAME":
+											skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
+											break;
+										case "HUNTRESS_BODY_NAME":
+											skillsAllowAutoSprint = (!inputPlayer.GetButton("SpecialSkill"));
+											break;
+										case "MAGE_BODY_NAME":
+											skillsAllowAutoSprint = (!inputPlayer.GetButton("SpecialSkill") && !inputPlayer.GetButton("UtilitySkill") && !RTAutoSprintEx.RT_tempDisable);
+											break;
+										case "ENGI_BODY_NAME":
+											skillsAllowAutoSprint = true;
+											break;									
+										case "MERC_BODY_NAME":
+		// ToDo: check all skills
+		// Merc secondary cancels, check if it can work
+											skillsAllowAutoSprint = (!inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
+											break;
+										case "TREEBOT_BODY_NAME":
+											skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !RTAutoSprintEx.RT_tempDisable);
+											break;
+										case "LOADER_BODY_NAME":
+											skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
+											break;											
+										case "CROCO_BODY_NAME":
+											skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
+											break;
+										case "TOOLBOT_BODY_NAME":
+											skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
+											break;
+										default:
+											skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
+											break;
+									}
+									RTAutoSprintEx.RT_isSprinting = skillsAllowAutoSprint;
 								}
 							}
-							if (skillsAllowAutoSprint) {
-								RTAutoSprintEx.RT_num += (double)Time.deltaTime;
-							} else {
-								RTAutoSprintEx.RT_num = 0.0;
-							}
+							if (!RTAutoSprintEx.RT_isSprinting) RTAutoSprintEx.RT_num += (double)Time.deltaTime;
+
 						// Disable sprinting if we movement angle is too large
 							if (RTAutoSprintEx.RT_isSprinting) {
 								Vector3 aimDirection = instanceFieldBodyInputs.aimDirection;

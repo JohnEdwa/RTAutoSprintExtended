@@ -36,6 +36,7 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 
 ## To-Do (hopefully)
 
+* Fix the FOV/Sprint blinking with cooldown-between-casts skills such as MUL-T Scrap Launcher.
 
 ## Changelog
 

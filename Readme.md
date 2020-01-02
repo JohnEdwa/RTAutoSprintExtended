@@ -1,16 +1,20 @@
 # Auto Sprint Extended
-#### Fixed by JohnEdwa, Original by Relocity and Thrawnarch
+#### Fixed & Extended by JohnEdwa, Original by Relocity and Thrawnarch
 
-A fork/reverse engineered/extended RT AutoSprint. The original hasn't been updated in 8 months and is very broken, and there is no source or contact info.   
-This is a fixed version for the Hidden Realms update, build ID 4478858.
+The original hasn't been updated in 8 months and is very broken. This is a fixed version built for the Hidden Realms update, build ID 4478858.
+The code can be found [at the Github repo here.](https://github.com/JohnEdwa/RTAutoSprintExtended).
 
+## The basics
 
-## Differences to the old version
+This mod will automatically sprint whenever the base game would allow you to sprint, so you do not have to do it manually. As a bonus, it also sprints during some less obvious situations, such as when charging attacks or immediately after using utility skills.
+
+## Features / Differences to the old version
 * Works, for one thing
-* Shows the correct crosshairs, instead of the useless sprinting chevron.
-* Commando, Huntress and Engineer autosprint during more skills (still something a player could do by themselves).
+* Shows the correct crosshair while sprinting, instead of the useless chevron.
+* MUL-T autosprints while using the Buzzsaw or charging the Rebar Launcher.
 * Added REX, Loader and Acrid with proper autosprinting.
-* Artificer Flamethrower mode is configurable.
+* Commando, Huntress and Engineer can autosprint during more skills.
+* Artificer Flamethrower mode is configurable between the default Toggle and a "Hold to Cast".
 * Engineer can be allowed to sprint between deploying mines.
 
 ## Configuration
@@ -19,13 +23,13 @@ This is a fixed version for the Hidden Realms update, build ID 4478858.
 
 ## Known Issues
 
-* Acrid M1 animation cancellation is very pronounced with this mod. Waiting for the official fix before trying for a workaround.
-* MUL-T Stun Grenade (M2) starts sprinting only after the put-away animation (~1s delay), although he could start right after firing.
+* Few skills block spinting simply based on the button input, and holding it down will make you walk even after the skill is on cooldown.
+* Acrid: M1 animation cancelling is even more annoying, as this mod immediately sprints. #Wontfix, waiting for the official one first.
+* MUL-T: Scrap Launcher sprints briefly between every shot which gets really annoying.
 
 ## To-Do (hopefully)
 
-* Change holding sprint to a walk button.
-* Disable the generic sprinting crosshair.
+* Allow walking by holding Shift.
 
 ## Changelog
 
@@ -34,7 +38,7 @@ This is a fixed version for the Hidden Realms update, build ID 4478858.
  * Added REX, Acrid and Loader, fixed Commando, Huntress, Engi not being allowed to autosprint during some skills they are able to. 
  * MUL-T primary weapons autosprint when possible.
  * Added Engi M2 config option.
- * Removed the useless Spriting crosshair.
+ * Removed the useless sprinting crosshair.
 
 `4478858.1.0` - Initial Version (Based on 1.0.5), fixed, and added Artificer flamethrower config.
 

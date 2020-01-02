@@ -124,11 +124,11 @@ namespace RT_AutoSprint
 				if (self.GetFieldValue<bool>("beginToCooldown")) {RTAutoSprintEx.RT_tempDisable = false;};
 			};
 			// Scrap Launcher
-			On.EntityStates.Toolbot.RecoverAimStunDrone.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
-			On.EntityStates.Toolbot.RecoverAimStunDrone.OnExit += (orig, self) => { RTAutoSprintEx.RT_tempDisable = false; orig(self); };
+			On.EntityStates.Toolbot.AimGrenade.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
 			// Stun Grenade (M2)
 			On.EntityStates.Toolbot.AimStunDrone.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
-			On.EntityStates.Toolbot.AimStunDrone.OnExit += (orig, self) => { RTAutoSprintEx.RT_tempDisable = false; orig(self); };
+			On.EntityStates.Toolbot.RecoverAimStunDrone.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = false; orig(self); };
+
 		// REX workaround logic
 			On.EntityStates.Treebot.Weapon.AimMortar.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
 			On.EntityStates.Treebot.Weapon.AimMortar.OnExit += (orig, self) => { RTAutoSprintEx.RT_tempDisable = false; orig(self); };

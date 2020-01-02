@@ -6,7 +6,10 @@ The code can be found [at the Github repo here.](https://github.com/JohnEdwa/RTA
 
 ## The basics
 
-This mod will automatically sprint whenever the base game would allow you to sprint, so you do not have to do it manually. As a bonus, it also sprints during some less obvious situations, such as when charging attacks or immediately after using utility skills.
+Your character will automatically sprint whenever the base game would allow you to sprint, so you do not have to do it manually. This includes sprinting during some less obvious situations, such as when charging certain attacks or immediately after using utility skills.   
+The special (useless) sprinting crosshair is disabled, and holding sprint now makes you walk instead, if for some reason you wish to do so.
+
+
 
 ## Features / Differences to the old version
 * Works, for one thing
@@ -15,30 +18,33 @@ This mod will automatically sprint whenever the base game would allow you to spr
 * Added REX, Loader and Acrid with proper autosprinting.
 * Commando, Huntress and Engineer can autosprint during more skills.
 * Artificer Flamethrower mode is configurable between the default Toggle and a "Hold to Cast".
-* Engineer can be allowed to sprint between deploying mines.
 
 ## Configuration
-* Config file item: `ArtificerFlamethrowerToggle: [true]/false`: Sets the flamethrower mode. Default is toggle cancellable by pressing the sprint key, alternative is a "Hold to cast" mode. Has a console command so you can change it on the fly: `rt_artiflamemode: `. `toggle/true/1`, or `hold/false/0`.
-* Config file item: `EngineerAllowM2Sprint: true/[false]`: When true, sprints between laying mines. Looks janky, but technically possible to do. As a positive, holding M2 doesn't disable sprinting anymore.
+* `HoldSprintToWalk: [true]/false`: Holding down sprint disable auto-sprinting, forcing the character to walk.
+* `DisableSprintingCrosshair: [true]/false`: Disables the sprinting chevron crosshair.
+* `ArtificerFlamethrowerToggle: [true]/false`: Sets the flamethrower mode. Default is toggle cancellable by pressing the sprint key, alternative is a "Hold to cast" mode. Has a console command so you can change it on the fly: `rt_artiflamemode: `. `toggle/true/1`, or `hold/false/0`.
 
 ## Known Issues
 
-* Few skills block spinting simply based on the button input, and holding it down will make you walk even after the skill is on cooldown.
+* Few skills block spinting simply based on the button input, and holding it down will force you to walk even when the skill is on cooldown. Notable ones are:
+ * Artificer: Primary, Special, Utility.
+ * Engineer: Secondary
+ * Mercenary: Secondary, Special
+ * Custom/New Survivors: Primary, Secondary, Special
+* MUL-T: Scrap Launcher sprints briefly between every shot which gets really annoying/nausiating. Reverse of the above issue, and a good example why it's done that way.
 * Acrid: M1 animation cancelling is even more annoying, as this mod immediately sprints. #Wontfix, waiting for the official one first.
-* MUL-T: Scrap Launcher sprints briefly between every shot which gets really annoying.
 
 ## To-Do (hopefully)
 
-* Allow walking by holding Shift.
 
 ## Changelog
 
 `4478858.1.1`
- * Cleaned the code. 
- * Added REX, Acrid and Loader, fixed Commando, Huntress, Engi not being allowed to autosprint during some skills they are able to. 
- * MUL-T primary weapons autosprint when possible.
- * Added Engi M2 config option.
+ * Cleaned/rewrote the code. 
+ * Added and fixed support for all survivors.
  * Removed the useless sprinting crosshair.
+ * Added special workarounds to allow REX, MUL-T and Artificer to sprint even more.
+ * Added Config items for disabling crosshair and enabling walking.
 
 `4478858.1.0` - Initial Version (Based on 1.0.5), fixed, and added Artificer flamethrower config.
 

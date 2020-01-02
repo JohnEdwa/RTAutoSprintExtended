@@ -1,52 +1,4 @@
-﻿
-/*
-RTAutoSprintEx, original by Relocity and Tharwnarch, fixed and extended by JohnEdwa
-
-Character names: x_BODY_NAME
-COMMANDO, MAGE, ENGI, MERC, HUNTRESS, TOOLBOT
-
-
-Skill notes:
-
-Commando:
-	PRI soft-blocks sprinting
-	SEC, SPL, UTI cancels sprint
-
-Huntress:
-	PRI allows spriting
-	SEC, SPC UTI cancels sprint
-
-MUL-T
-	Nailgun stops on sprint.
-	Rebar-puncher cancels, but allows while charging.
-	Scrap-launcher cancels sprint.
-	Buzz-saw allows sprinting while firing.
-	
-	SEC casts if you sprint.
-	UTI makes you sprint afterwards.
-	
-REX:
-	PRI cancels sprint.
-	Drill casts on sprinting.
-	Boop cancels sprint.
-	Succ cancels sprint,
-
-Engineer:
- * PRI cancels sprint, can sprint while charging.
- * SEC cancels sprint
- * SPL cancels sprint, can sprint while charging.
-
-Artificer: 
- * (SPL) Flamethrower, stops casting
- * (UTI) Ice Wall, forces a cast
-
-Acrid:
- * Melee and Sprint have annoying animation cancelling - wontfix: waiting for official fix
- * Sprint only cancelled by melee.
-
-*/
-
-using System;
+﻿using System;
 using System.Reflection;
 using System.Collections;
 using System.Linq;
@@ -66,7 +18,7 @@ namespace RT_AutoSprint_Ex {
 [BepInPlugin(GUID, NAME, VERSION)]
 
 public class RTAutoSprintEx : BaseUnityPlugin {
-	public const string 
+	public const string
 		NAME = "RTAutoSprintEx",
 		GUID = "com.johnedwa." + NAME,
 		VERSION = "4478858.1.1";
@@ -79,7 +31,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	public static bool RT_enabled;
 	public static bool RT_isSprinting;
 	public static bool RT_artiFlaming;
-	public static bool RT_tempDisable;	
+	public static bool RT_tempDisable;
 
 	public void Awake() {
 
@@ -119,10 +71,10 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 			RTAutoSprintEx.RT_tempDisable = ArtificerFlamethrowerToggle.Value;
 			orig(self);
 		};
-		On.EntityStates.Mage.Weapon.Flamethrower.OnExit += (orig, self) => { 
+		On.EntityStates.Mage.Weapon.Flamethrower.OnExit += (orig, self) => {
 			RTAutoSprintEx.RT_artiFlaming = false;
-			RTAutoSprintEx.RT_tempDisable = false; 
-			orig(self);	
+			RTAutoSprintEx.RT_tempDisable = false;
+			orig(self);
 		};
 	// Artificer bolt logic
 		On.EntityStates.Mage.Weapon.FireFireBolt.OnEnter += (orig, self) => { RTAutoSprintEx.RT_num = -0.2; orig(self); };
@@ -136,7 +88,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		//Nailgun
 		On.EntityStates.FireNailgun.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
 		On.EntityStates.FireNailgun.FixedUpdate += (orig, self) => {
-			orig(self); 
+			orig(self);
 			if (self.GetFieldValue<bool>("beginToCooldown")) {RTAutoSprintEx.RT_tempDisable = false;};
 		};
 		// Stun Grenade (M2)
@@ -162,7 +114,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 						);
 					c.Index += 0;
 					c.RemoveRange(2);
-					c.Emit(OpCodes.Ldc_I4, 0);	
+					c.Emit(OpCodes.Ldc_I4, 0);
 			};
 		}
 
@@ -175,7 +127,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 				RoR2.Chat.AddMessage("RTAutoSprintEx " + ((RTAutoSprintEx.RT_enabled) ? " enabled." : " disabled."));
 			}
 			*/
-			
+
 			RTAutoSprintEx.RT_isSprinting = false;
 			bool skillsAllowAutoSprint = false;
 			RoR2.NetworkUser networkUser = self.networkUser;
@@ -201,7 +153,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 										break;
 									case "ENGI_BODY_NAME":
 										skillsAllowAutoSprint = (true);
-										break;									
+										break;
 									case "MERC_BODY_NAME":
 										skillsAllowAutoSprint = (true);
 										break;
@@ -210,7 +162,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 										break;
 									case "LOADER_BODY_NAME":
 										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
-										break;											
+										break;
 									case "CROCO_BODY_NAME":
 										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
 										break;

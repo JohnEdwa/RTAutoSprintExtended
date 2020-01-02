@@ -11,6 +11,7 @@
 libs/
 .vscode/
 .gitattributes
+.psd
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

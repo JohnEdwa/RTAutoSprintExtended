@@ -149,6 +149,9 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		On.EntityStates.Treebot.Weapon.AimMortar2.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
 		On.EntityStates.Treebot.Weapon.AimMortar2.OnProjectileFiredLocal += (orig, self) => { RTAutoSprintEx.RT_tempDisable = false; orig(self); };
 
+	// Acrid M1 delay to help with the animation cancelling issue
+		//On.EntityStates.Croco.Slash.OnExit += (orig, self) => { RTAutoSprintEx.RT_num = -0.2; orig(self); };
+
 	// Disable sprinting crosshair
 		if (DisableSprintingCrosshair.Value) {
 			IL.RoR2.UI.CrosshairManager.UpdateCrosshair += (il) => {
@@ -166,86 +169,85 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 
 	// Sprinting logic
 		On.RoR2.PlayerCharacterMasterController.FixedUpdate += delegate(On.RoR2.PlayerCharacterMasterController.orig_FixedUpdate orig, RoR2.PlayerCharacterMasterController self) {
+			/*
 			if (Input.GetKeyDown(KeyCode.F2)) {
 				RTAutoSprintEx.RT_enabled = !RTAutoSprintEx.RT_enabled;
 				RoR2.Chat.AddMessage("RTAutoSprintEx " + ((RTAutoSprintEx.RT_enabled) ? " enabled." : " disabled."));
 			}
+			*/
 			
-			if (RTAutoSprintEx.RT_enabled) {
-				RTAutoSprintEx.RT_isSprinting = false;
-				bool skillsAllowAutoSprint = false;
-				RoR2.NetworkUser networkUser = self.networkUser;
-				RoR2.InputBankTest instanceFieldBodyInputs = self.GetInstanceField<RoR2.InputBankTest>("bodyInputs");
-				if (instanceFieldBodyInputs) {
-					if (networkUser && networkUser.localUser != null && !networkUser.localUser.isUIFocused) {
-						Player inputPlayer = networkUser.localUser.inputPlayer;
-						RoR2.CharacterBody instanceFieldBody = self.GetInstanceField<RoR2.CharacterBody>("body");
-						if (instanceFieldBody) {
-							RTAutoSprintEx.RT_isSprinting = instanceFieldBody.isSprinting;
-							if (!RTAutoSprintEx.RT_isSprinting) {
-								if (RTAutoSprintEx.RT_num > 0.1) {
-									RTAutoSprintEx.RT_num = 0.0;
-									switch(instanceFieldBody.baseNameToken){
-										case "COMMANDO_BODY_NAME":
-											skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
-											break;
-										case "HUNTRESS_BODY_NAME":
-											skillsAllowAutoSprint = (!inputPlayer.GetButton("SpecialSkill"));
-											break;
-										case "MAGE_BODY_NAME":
-											skillsAllowAutoSprint = (!inputPlayer.GetButton("SpecialSkill") && !inputPlayer.GetButton("UtilitySkill") && !RTAutoSprintEx.RT_tempDisable);
-											break;
-										case "ENGI_BODY_NAME":
-											skillsAllowAutoSprint = true;
-											break;									
-										case "MERC_BODY_NAME":
-		// ToDo: check all skills
-		// Merc secondary cancels, check if it can work
-											skillsAllowAutoSprint = (!inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
-											break;
-										case "TREEBOT_BODY_NAME":
-											skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !RTAutoSprintEx.RT_tempDisable);
-											break;
-										case "LOADER_BODY_NAME":
-											skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
-											break;											
-										case "CROCO_BODY_NAME":
-											skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
-											break;
-										case "TOOLBOT_BODY_NAME":
-											skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
-											break;
-										default:
-											skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
-											break;
-									}
-									RTAutoSprintEx.RT_isSprinting = skillsAllowAutoSprint;
+			RTAutoSprintEx.RT_isSprinting = false;
+			bool skillsAllowAutoSprint = false;
+			RoR2.NetworkUser networkUser = self.networkUser;
+			RoR2.InputBankTest instanceFieldBodyInputs = self.GetInstanceField<RoR2.InputBankTest>("bodyInputs");
+			if (instanceFieldBodyInputs) {
+				if (networkUser && networkUser.localUser != null && !networkUser.localUser.isUIFocused) {
+					Player inputPlayer = networkUser.localUser.inputPlayer;
+					RoR2.CharacterBody instanceFieldBody = self.GetInstanceField<RoR2.CharacterBody>("body");
+					if (instanceFieldBody && RTAutoSprintEx.RT_enabled) {
+						RTAutoSprintEx.RT_isSprinting = instanceFieldBody.isSprinting;
+						if (!RTAutoSprintEx.RT_isSprinting) {
+							if (RTAutoSprintEx.RT_num > 0.1) {
+								RTAutoSprintEx.RT_num = 0.0;
+								switch(instanceFieldBody.baseNameToken){
+									case "COMMANDO_BODY_NAME":
+										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
+										break;
+									case "HUNTRESS_BODY_NAME":
+										skillsAllowAutoSprint = (!inputPlayer.GetButton("SpecialSkill"));
+										break;
+									case "MAGE_BODY_NAME":
+										skillsAllowAutoSprint = (!inputPlayer.GetButton("SpecialSkill") && !inputPlayer.GetButton("UtilitySkill") && !RTAutoSprintEx.RT_tempDisable);
+										break;
+									case "ENGI_BODY_NAME":
+										skillsAllowAutoSprint = (true);
+										break;									
+									case "MERC_BODY_NAME":
+										skillsAllowAutoSprint = (true);
+										break;
+									case "TREEBOT_BODY_NAME":
+										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !RTAutoSprintEx.RT_tempDisable);
+										break;
+									case "LOADER_BODY_NAME":
+										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
+										break;											
+									case "CROCO_BODY_NAME":
+										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
+										break;
+									case "TOOLBOT_BODY_NAME":
+										skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
+										break;
+									default:
+										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
+										break;
 								}
-							}
-							if (!RTAutoSprintEx.RT_isSprinting) RTAutoSprintEx.RT_num += (double)Time.deltaTime;
-
-						// Disable sprinting if we movement angle is too large
-							if (RTAutoSprintEx.RT_isSprinting) {
-								Vector3 aimDirection = instanceFieldBodyInputs.aimDirection;
-								aimDirection.y = 0f;
-								aimDirection.Normalize();
-								Vector3 moveVector = instanceFieldBodyInputs.moveVector;
-								moveVector.y = 0f;
-								moveVector.Normalize();
-								if (Vector3.Dot(aimDirection, moveVector) < self.GetInstanceField<float>("sprintMinAimMoveDot")) {
-									RTAutoSprintEx.RT_isSprinting = false;
-								}
+								RTAutoSprintEx.RT_isSprinting = skillsAllowAutoSprint;
 							}
 						}
-					// Walking logic.
-						if (inputPlayer.GetButton("Sprint")) {
-							if (HoldSprintToWalk.Value) RTAutoSprintEx.RT_isSprinting = false;
-							if (RT_artiFlaming) RTAutoSprintEx.RT_isSprinting = true;
+						if (!RTAutoSprintEx.RT_isSprinting) RTAutoSprintEx.RT_num += (double)Time.deltaTime;
+
+					// Disable sprinting if we movement angle is too large
+						if (RTAutoSprintEx.RT_isSprinting) {
+							Vector3 aimDirection = instanceFieldBodyInputs.aimDirection;
+							aimDirection.y = 0f;
+							aimDirection.Normalize();
+							Vector3 moveVector = instanceFieldBodyInputs.moveVector;
+							moveVector.y = 0f;
+							moveVector.Normalize();
+							if (Vector3.Dot(aimDirection, moveVector) < self.GetInstanceField<float>("sprintMinAimMoveDot")) {
+								RTAutoSprintEx.RT_isSprinting = false;
+							}
 						}
 					}
+				// Walking logic.
+					if (inputPlayer.GetButton("Sprint")) {
+						if (HoldSprintToWalk.Value) RTAutoSprintEx.RT_isSprinting = false;
+						if (RT_artiFlaming) RTAutoSprintEx.RT_isSprinting = true;
+					}
 				}
+
 				orig.Invoke(self);
-				if (instanceFieldBodyInputs ) {
+				if (instanceFieldBodyInputs && RTAutoSprintEx.RT_enabled) {
 					instanceFieldBodyInputs.sprint.PushState(RTAutoSprintEx.RT_isSprinting);
 				}
 			}

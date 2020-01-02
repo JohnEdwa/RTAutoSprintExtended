@@ -3,13 +3,12 @@
 
 The original hasn't been updated in 8 months and is very broken. This is a fixed version built for the Hidden Realms update, build ID 4478858.
 The code can be found [at the Github repo here.](https://github.com/JohnEdwa/RTAutoSprintExtended).
+If you find something that doesn't work, please open an issue on Github.
 
 ## The basics
 
 Your character will automatically sprint whenever the base game would allow you to sprint, so you do not have to do it manually. This includes sprinting during some less obvious situations, such as when charging certain attacks or immediately after using utility skills.   
 The special (useless) sprinting crosshair is disabled, and holding sprint now makes you walk instead, if for some reason you wish to do so.
-
-
 
 ## Features / Differences to the old version
 * Works, for one thing
@@ -27,11 +26,10 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 ## Known Issues
 
 * Few skills block spinting simply based on the button input, and holding it down will force you to walk even when the skill is on cooldown. Notable ones are:
- * Artificer: Primary, Special, Utility.
- * Engineer: Secondary
- * Mercenary: Secondary, Special
- * Custom/New Survivors: Primary, Secondary, Special
-* MUL-T: Scrap Launcher sprints briefly between every shot which gets really annoying/nausiating. Reverse of the above issue, and a good example why it's done that way.
+ * Artificer: Special, Utility.
+ * Huntress: Special.
+ * Custom/New Survivors: Primary, Secondary, Special.
+* MUL-T: Scrap Launcher sprints briefly between every shot which gets really annoying/nausiating.
 * Acrid: M1 animation cancelling is even more annoying, as this mod immediately sprints. #Wontfix, waiting for the official one first.
 
 ## To-Do (hopefully)

@@ -21,11 +21,17 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	public const string
 		NAME = "RTAutoSprintEx",
 		GUID = "com.johnedwa." + NAME,
-		VERSION = "1.0.0";
+		VERSION = "1.0.2";
 
-	private static ConfigWrapper<bool> ArtificerFlamethrowerToggle;
+	/*
 	private static ConfigWrapper<bool> HoldSprintToWalk;
+	private static ConfigWrapper<bool> ArtificerFlamethrowerToggle;	
 	private static ConfigWrapper<bool> DisableSprintingCrosshair;
+	*/
+
+	private static ConfigEntry<bool> HoldSprintToWalk;
+	private static ConfigEntry<bool> ArtificerFlamethrowerToggle;	
+	private static ConfigEntry<bool> DisableSprintingCrosshair;
 
 	private static double RT_num;
 	public static bool RT_enabled;
@@ -47,23 +53,11 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 			orig(self);
 		};
 
-		HoldSprintToWalk = Config.Wrap<bool>(
-			"Config", "HoldSprintToWalk",
-			"General: Holding Sprint key temporarily disables auto-sprinting, making you to walk.",
-			true
-		);
+		//HoldSprintToWalk = Config.Bind("", "HoldSprintToWalk", true, "General: Holding Sprint key temporarily disables auto-sprinting, making you to walk.");
+		HoldSprintToWalk = Config.Bind("", "HoldSprintToWalk", true, new ConfigDescription("General: Holding Sprint key temporarily disables auto-sprinting, making you to walk.", new AcceptableValueList<bool>(true, false)));
+		DisableSprintingCrosshair = Config.Bind("", "DisableSprintingCrosshair", true, new ConfigDescription("General: Disables the (useless) sprinting crosshair. The most probable thing to break on game update.", new AcceptableValueList<bool>(true, false)));
+		ArtificerFlamethrowerToggle = Config.Bind("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
 
-		DisableSprintingCrosshair = Config.Wrap<bool>(
-			"Config", "DisableSprintingCrosshair",
-			"General: Disables the (useless) sprinting crosshair. The most probable thing to break on game update.",
-			true
-		);
-
-		ArtificerFlamethrowerToggle = Config.Wrap<bool>(
-			"Config", "ArtificerFlamethrowerToggle",
-			"Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).",
-			true
-		);
 
 	// Artificer Flamethrower workaround logic
 		On.EntityStates.Mage.Weapon.Flamethrower.OnEnter += (orig, self) => {

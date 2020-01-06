@@ -1,5 +1,5 @@
 # Auto Sprint Extended
-### Fixed & Extended by JohnEdwa, Original by Relocity and Thrawnarch
+#### Fixed & Extended by JohnEdwa, Original by Relocity and Thrawnarch
 #### Made and tested for RoR2 build-ID 4478858 - Hidden Realms Update
 
 The code can be found [at the Github repo here.](https://github.com/JohnEdwa/RTAutoSprintExtended).
@@ -22,14 +22,14 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 ## Configuration
 * `HoldSprintToWalk: [true]/false`: Holding down sprint disable auto-sprinting, forcing the character to walk.
 * `DisableSprintingCrosshair: [true]/false`: Disables the sprinting chevron crosshair.
-* `ArtificerFlamethrowerToggle: [true]/false`: Sets the flamethrower mode. Default is toggle cancellable by pressing the sprint key, alternative is a "Hold to cast" mode. Has a console command so you can change it on the fly: `rt_artiflamemode: `. `toggle/true/1`, or `hold/false/0`.
+* `ArtificerFlamethrowerToggle: [true]/false`: Sets the flamethrower mode. Default is toggle cancellable by pressing the sprint key, alternative is a "Hold to cast" mode. Has a console command so you can change it on the fly: `rt_artiflamemode`: `toggle/true/1` or `hold/false/0`.
 
 ## Known Issues
 
 * Few skills block sprinting simply based on the button input, and holding it down will force you to walk even when the skill is on cooldown. Notable ones are:
- * Artificer: Special, Utility.
- * Huntress: Special.
- * Custom/New Survivors: Primary, Secondary, Special.
+  - Artificer: Special, Utility.
+  - Huntress: Special.
+  - Custom/New Survivors: Primary, Secondary, Special.
 * MUL-T: Scrap Launcher sprints briefly between every shot which gets really annoying/nausiating.
 * Acrid: M1 animation cancelling is even more annoying, as this mod immediately sprints. #Wontfix, waiting for the official one first.
 
@@ -41,6 +41,7 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 
 `1.0.2`
  * Fixed the readme and manifest version.
+ * Small config tweaks.
 
 `1.0.1`
  * Initial release.

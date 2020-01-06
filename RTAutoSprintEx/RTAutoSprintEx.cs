@@ -23,12 +23,6 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		GUID = "com.johnedwa." + NAME,
 		VERSION = "1.0.2";
 
-	/*
-	private static ConfigWrapper<bool> HoldSprintToWalk;
-	private static ConfigWrapper<bool> ArtificerFlamethrowerToggle;	
-	private static ConfigWrapper<bool> DisableSprintingCrosshair;
-	*/
-
 	private static ConfigEntry<bool> HoldSprintToWalk;
 	private static ConfigEntry<bool> ArtificerFlamethrowerToggle;	
 	private static ConfigEntry<bool> DisableSprintingCrosshair;
@@ -48,16 +42,10 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		RTAutoSprintEx.RT_tempDisable = false;
 
 	// Configuration
-		On.RoR2.Console.Awake += (orig, self) => {
-			CommandHelper.RegisterCommands(self);
-			orig(self);
-		};
-
-		//HoldSprintToWalk = Config.Bind("", "HoldSprintToWalk", true, "General: Holding Sprint key temporarily disables auto-sprinting, making you to walk.");
+		On.RoR2.Console.Awake += (orig, self) => { CommandHelper.RegisterCommands(self); orig(self); };
 		HoldSprintToWalk = Config.Bind("", "HoldSprintToWalk", true, new ConfigDescription("General: Holding Sprint key temporarily disables auto-sprinting, making you to walk.", new AcceptableValueList<bool>(true, false)));
 		DisableSprintingCrosshair = Config.Bind("", "DisableSprintingCrosshair", true, new ConfigDescription("General: Disables the (useless) sprinting crosshair. The most probable thing to break on game update.", new AcceptableValueList<bool>(true, false)));
 		ArtificerFlamethrowerToggle = Config.Bind("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
-
 
 	// Artificer Flamethrower workaround logic
 		On.EntityStates.Mage.Weapon.Flamethrower.OnEnter += (orig, self) => {
@@ -65,18 +53,19 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 			RTAutoSprintEx.RT_tempDisable = ArtificerFlamethrowerToggle.Value;
 			orig(self);
 		};
+		
 		On.EntityStates.Mage.Weapon.Flamethrower.OnExit += (orig, self) => {
 			RTAutoSprintEx.RT_artiFlaming = false;
 			RTAutoSprintEx.RT_tempDisable = false;
 			orig(self);
 		};
 	// Artificer bolt logic
-		On.EntityStates.Mage.Weapon.FireFireBolt.OnEnter += (orig, self) => { RTAutoSprintEx.RT_num = -0.2; orig(self); };
-		On.EntityStates.Mage.Weapon.FireLaserbolt.OnEnter += (orig, self) => { RTAutoSprintEx.RT_num = -0.2; orig(self); };
+		On.EntityStates.Mage.Weapon.FireFireBolt.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
+		On.EntityStates.Mage.Weapon.FireLaserbolt.OnEnter += (orig, self) => {  orig(self);  RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 
 	// Engineer mine workaround
-		On.EntityStates.Engi.EngiWeapon.FireMines.OnEnter += (orig, self) => { RTAutoSprintEx.RT_num = -0.4; orig(self); };
-		On.EntityStates.Engi.EngiWeapon.FireSeekerGrenades.OnEnter += (orig, self) => { RTAutoSprintEx.RT_num = -0.4; orig(self); };
+		On.EntityStates.Engi.EngiWeapon.FireMines.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
+		On.EntityStates.Engi.EngiWeapon.FireSeekerGrenades.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 
 	// MUL-T workaround logic, disable sprinting while using the Nailgun, Scrap Launcher, or Stun Grenade.
 		//Nailgun
@@ -198,7 +187,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 				}
 			}
 		}; // End of FixedUpdate
-		Debug.Log("Loaded RT AutoSprint Extended\nArtificer flamethrower mode is " + ((ArtificerFlamethrowerToggle.Value) ? " [toggle]." : " [hold]."));
+		Debug.Log("Loaded RT AutoSprint Extended\nArtificer flamethrower mode is" + ((ArtificerFlamethrowerToggle.Value) ? " [toggle]." : " [hold]."));
 	} // End of Awake
 
 	[RoR2.ConCommand(commandName = "rt_artiflamemode", flags = ConVarFlags.None, helpText = "Artificer Flamethrower Mode: Toggle or Hold")]

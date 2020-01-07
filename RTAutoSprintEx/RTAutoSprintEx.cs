@@ -26,12 +26,13 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	private static ConfigEntry<bool> HoldSprintToWalk;
 	private static ConfigEntry<bool> ArtificerFlamethrowerToggle;	
 	private static ConfigEntry<bool> DisableSprintingCrosshair;
+	private static ConfigEntry<double> AnimationCancelDelay;
 
 	private static double RT_num;
-	public static bool RT_enabled;
-	public static bool RT_isSprinting;
-	public static bool RT_artiFlaming;
-	public static bool RT_tempDisable;
+	private static bool RT_enabled;
+	private static bool RT_isSprinting;
+	private static bool RT_artiFlaming;
+	private static bool RT_tempDisable;
 
 	public void Awake() {
 
@@ -45,23 +46,19 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		On.RoR2.Console.Awake += (orig, self) => { CommandHelper.RegisterCommands(self); orig(self); };
 		HoldSprintToWalk = Config.Bind("", "HoldSprintToWalk", true, new ConfigDescription("General: Holding Sprint key temporarily disables auto-sprinting, making you to walk.", new AcceptableValueList<bool>(true, false)));
 		DisableSprintingCrosshair = Config.Bind("", "DisableSprintingCrosshair", true, new ConfigDescription("General: Disables the (useless) sprinting crosshair. The most probable thing to break on game update.", new AcceptableValueList<bool>(true, false)));
+		AnimationCancelDelay = Config.Bind("", "AnimationCancelDelay", 0.2, new ConfigDescription("General: Some skills can be animation cancelled by starting to sprint. This value sets how long to wait.", new AcceptableValueRange<double>(0.0, 1.0)));
 		ArtificerFlamethrowerToggle = Config.Bind("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
+		
 
 	// Artificer Flamethrower workaround logic
-		On.EntityStates.Mage.Weapon.Flamethrower.OnEnter += (orig, self) => {
-			RTAutoSprintEx.RT_artiFlaming = true;
-			RTAutoSprintEx.RT_tempDisable = ArtificerFlamethrowerToggle.Value;
-			orig(self);
-		};
-		
-		On.EntityStates.Mage.Weapon.Flamethrower.OnExit += (orig, self) => {
-			RTAutoSprintEx.RT_artiFlaming = false;
-			RTAutoSprintEx.RT_tempDisable = false;
-			orig(self);
-		};
+		On.EntityStates.Mage.Weapon.Flamethrower.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_artiFlaming = true; RTAutoSprintEx.RT_tempDisable = true; };
+		On.EntityStates.Mage.Weapon.Flamethrower.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_artiFlaming = false; RTAutoSprintEx.RT_tempDisable = false; };
+
 	// Artificer bolt logic
 		On.EntityStates.Mage.Weapon.FireFireBolt.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 		On.EntityStates.Mage.Weapon.FireLaserbolt.OnEnter += (orig, self) => {  orig(self);  RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
+		On.EntityStates.Mage.Weapon.PrepWall.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = true; };
+		On.EntityStates.Mage.Weapon.PrepWall.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = false; };
 
 	// Engineer mine workaround
 		On.EntityStates.Engi.EngiWeapon.FireMines.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
@@ -69,23 +66,33 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 
 	// MUL-T workaround logic, disable sprinting while using the Nailgun, Scrap Launcher, or Stun Grenade.
 		//Nailgun
-		On.EntityStates.FireNailgun.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
-		On.EntityStates.FireNailgun.FixedUpdate += (orig, self) => {
-			orig(self);
-			if (self.GetFieldValue<bool>("beginToCooldown")) {RTAutoSprintEx.RT_tempDisable = false;};
-		};
+		On.EntityStates.FireNailgun.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = true; };
+		On.EntityStates.FireNailgun.FixedUpdate += (orig, self) => { orig(self); if (self.GetFieldValue<bool>("beginToCooldown")) {RTAutoSprintEx.RT_tempDisable = false;}; };
+
+		// Scrap Launcher
+		On.EntityStates.Toolbot.FireGrenadeLauncher.PlayAnimation += (orig, self, duration) => { orig(self, duration); RTAutoSprintEx.RT_num = -duration; };
+
 		// Stun Grenade (M2)
-		On.EntityStates.Toolbot.AimGrenade.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
-		On.EntityStates.Toolbot.RecoverAimStunDrone.OnEnter += (orig, self) => {RTAutoSprintEx.RT_tempDisable = false; orig(self); };
+		On.EntityStates.Toolbot.AimGrenade.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = true; };
+		On.EntityStates.Toolbot.RecoverAimStunDrone.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = false; };
 
 	// REX workaround logic
-		On.EntityStates.Treebot.Weapon.AimMortar.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
-		On.EntityStates.Treebot.Weapon.AimMortar.OnExit += (orig, self) => { RTAutoSprintEx.RT_tempDisable = false; orig(self); };
-		On.EntityStates.Treebot.Weapon.AimMortar2.OnEnter += (orig, self) => { RTAutoSprintEx.RT_tempDisable = true; orig(self); };
-		On.EntityStates.Treebot.Weapon.AimMortar2.OnProjectileFiredLocal += (orig, self) => { RTAutoSprintEx.RT_tempDisable = false; orig(self); };
+		On.EntityStates.Treebot.Weapon.FireSyringe.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
+		On.EntityStates.Treebot.Weapon.AimMortar.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = true; };
+		On.EntityStates.Treebot.Weapon.AimMortar.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = false;};
+		On.EntityStates.Treebot.Weapon.AimMortar2.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = true;};
+		On.EntityStates.Treebot.Weapon.AimMortar2.OnProjectileFiredLocal += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = false;};
 
 	// Acrid M1 delay to help with the animation cancelling issue
-		//On.EntityStates.Croco.Slash.OnExit += (orig, self) => { RTAutoSprintEx.RT_num = -0.2; orig(self); };
+			On.EntityStates.Croco.Slash.OnEnter += (orig, self) => { orig(self); 
+			RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("durationBeforeInterruptable"); 
+			};
+
+	// Commando M1 delay
+		On.EntityStates.Commando.CommandoWeapon.FireFMJ.OnEnter  += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
+
+	// Loader M1 Delay
+		On.EntityStates.Loader.SwingComboFist.PlayAnimation += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 
 	// Disable sprinting crosshair
 		if (DisableSprintingCrosshair.Value) {
@@ -101,15 +108,12 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 			};
 		}
 
-
 	// Sprinting logic
 		On.RoR2.PlayerCharacterMasterController.FixedUpdate += delegate(On.RoR2.PlayerCharacterMasterController.orig_FixedUpdate orig, RoR2.PlayerCharacterMasterController self) {
-			/*
 			if (Input.GetKeyDown(KeyCode.F2)) {
 				RTAutoSprintEx.RT_enabled = !RTAutoSprintEx.RT_enabled;
 				RoR2.Chat.AddMessage("RTAutoSprintEx " + ((RTAutoSprintEx.RT_enabled) ? " enabled." : " disabled."));
 			}
-			*/
 
 			RTAutoSprintEx.RT_isSprinting = false;
 			bool skillsAllowAutoSprint = false;
@@ -126,13 +130,15 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 								RTAutoSprintEx.RT_num = 0.0;
 								switch(instanceFieldBody.baseNameToken){
 									case "COMMANDO_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
+										skillsAllowAutoSprint = (true);
 										break;
 									case "HUNTRESS_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("SpecialSkill"));
+										skillsAllowAutoSprint = (true);
 										break;
 									case "MAGE_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("SpecialSkill") && !inputPlayer.GetButton("UtilitySkill") && !RTAutoSprintEx.RT_tempDisable);
+										// If TOGGLE, just follow tempDisable, if HOLD disable when button released
+										if (RT_artiFlaming && !ArtificerFlamethrowerToggle.Value && !inputPlayer.GetButton("SpecialSkill")) RTAutoSprintEx.RT_tempDisable = false;
+										skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
 										break;
 									case "ENGI_BODY_NAME":
 										skillsAllowAutoSprint = (true);
@@ -141,13 +147,13 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 										skillsAllowAutoSprint = (true);
 										break;
 									case "TREEBOT_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !RTAutoSprintEx.RT_tempDisable);
+										skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
 										break;
 									case "LOADER_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
+										skillsAllowAutoSprint = (true);
 										break;
 									case "CROCO_BODY_NAME":
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill"));
+										skillsAllowAutoSprint = (true);
 										break;
 									case "TOOLBOT_BODY_NAME":
 										skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
@@ -159,6 +165,12 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 								RTAutoSprintEx.RT_isSprinting = skillsAllowAutoSprint;
 							}
 						}
+						if (RTAutoSprintEx.RT_num < -(AnimationCancelDelay.Value)
+							&& !inputPlayer.GetButton("PrimarySkill") 
+							&& !inputPlayer.GetButton("SecondarySkill") 
+							&& !inputPlayer.GetButton("SpecialSkill")
+							&& !inputPlayer.GetButton("UtilitySkill")) 
+							{ RTAutoSprintEx.RT_num = -(AnimationCancelDelay.Value); }
 						if (!RTAutoSprintEx.RT_isSprinting) RTAutoSprintEx.RT_num += (double)Time.deltaTime;
 
 					// Disable sprinting if the movement angle is too large
@@ -175,7 +187,8 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 						}
 					}
 				// Walking logic.
-					if (inputPlayer.GetButton("Sprint")) {
+					if (inputPlayer.GetButton("Sprint") && RTAutoSprintEx.RT_enabled) {
+						RTAutoSprintEx.RT_num = 1.0; 
 						if (HoldSprintToWalk.Value) RTAutoSprintEx.RT_isSprinting = false;
 						if (RT_artiFlaming) RTAutoSprintEx.RT_isSprinting = true;
 					}
@@ -191,7 +204,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	} // End of Awake
 
 	[RoR2.ConCommand(commandName = "rt_artiflamemode", flags = ConVarFlags.None, helpText = "Artificer Flamethrower Mode: Toggle or Hold")]
-	private static void RTArtiFlameMode(RoR2.ConCommandArgs args) {
+	private static void ccartiflamemode(RoR2.ConCommandArgs args) {
 		args.CheckArgumentCount(1);
 		switch (args[0].ToLower()) {
 			case "toggle": case "true": case "1":
@@ -206,6 +219,26 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		}
 		Debug.Log($"Artificer flamethrower mode is " + ((ArtificerFlamethrowerToggle.Value) ? " [toggle]." : " [hold]."));
 	}
+	/*
+    [ConCommand(commandName = "rt_animcanceldelay", flags = ConVarFlags.None,
+        helpText = "Animation Cancellation Delay.")]
+        private static void ccanimcanceldelay(ConCommandArgs args)
+        {
+            if (args.Count == 0)
+            {
+                Debug.Log(AnimationCancelDelay.Value);
+                return;
+            }
+            var valid = args.TryGetArgDouble(0);
+            if (!valid.HasValue)
+                Debug.Log("Couldn't parse to a number.");
+            else
+            {
+                AnimationCancelDelay.Value = valid.Value;
+                Debug.Log($"Animation Delay is  {AnimationCancelDelay.Value}.");
+            }
+	}
+	*/
 } // End of class RTAutoSprintEx
 
 // Helper classes

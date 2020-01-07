@@ -23,25 +23,31 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 * `HoldSprintToWalk: [true]/false`: Holding down sprint disable auto-sprinting, forcing the character to walk.
 * `DisableSprintingCrosshair: [true]/false`: Disables the sprinting chevron crosshair.
 * `ArtificerFlamethrowerToggle: [true]/false`: Sets the flamethrower mode. Default is toggle cancellable by pressing the sprint key, alternative is a "Hold to cast" mode. Has a console command so you can change it on the fly: `rt_artiflamemode`: `toggle/true/1` or `hold/false/0`.
+* `AnimationCancelDelay: 0.0 [0.2] 1.0 `: How long to wait after attack button is released to animation cancel and sprint anyway.
 
 ## Known Issues
 
-* Few skills block sprinting simply based on the button input, and holding it down will force you to walk even when the skill is on cooldown. Notable ones are:
-  - Artificer: Special, Utility.
-  - Huntress: Special.
-  - Custom/New Survivors: Primary, Secondary, Special.
-* MUL-T: Scrap Launcher sprints briefly between every shot which gets really annoying/nausiating.
-* Acrid: M1 animation cancelling is even more annoying, as this mod immediately sprints. #Wontfix, waiting for the official one first.
+* Acrid M1 animation cancelling is even more broken.
+* Custom survivors block sprinting based on button input, as long as Primary, Secondary or Special is held down you won't sprint.
 
-## To-Do (hopefully)
+## To-Do
 
-* Fix the FOV/Sprint blinking with cooldown-between-casts skills such as MUL-T Scrap Launcher.
+* Figure a better way to handle custom survivors.
+* Add an option to disable REX burrowing under the ground on sprint.
+
+
+## Contact
+
+Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExtended) or find me on the RoR2 modding discord (JohnEdwa).
 
 ## Changelog
 
 `1.0.2`
+ * Arti, Engi, Commando and Loader use the animation duration instead of a static delay between shots.
+ * Automatic animation cancellation for the above.
+ * Added MUL-T Scrap Launcher logic.
  * Fixed the readme and manifest version.
- * Small config tweaks.
+ * Other small tweaks.
 
 `1.0.1`
  * Initial release.

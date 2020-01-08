@@ -84,29 +84,13 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 
 	// Acrid M1 delay to help with the animation cancelling issue
 		//On.EntityStates.Croco.Slash.OnEnter += (orig, self) => { orig(self);  RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("durationBeforeInterruptable"); };
+		On.EntityStates.Croco.Slash.PlayAnimation += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 
 	// Commando M1 delay
 		On.EntityStates.Commando.CommandoWeapon.FirePistol2.OnEnter  += (orig, self) => { 
 			orig(self); 
 			RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); 
 		};
-		/*
-		On.EntityStates.Commando.CommandoWeapon.FireFMJ.OnEnter  += (orig, self) => { 
-			orig(self); 
-			//RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); 
-			RoR2.Chat.AddMessage("FireFMJ.OnEnter " + self.GetFieldValue<float>("duration"));
-		};
-		On.EntityStates.Commando.CommandoWeapon.FirePistol.OnEnter  += (orig, self) => { 
-			orig(self); 
-			//RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); 
-			RoR2.Chat.AddMessage("FirePistol.OnEnter " + self.GetFieldValue<float>("duration"));
-		};
-		On.EntityStates.Commando.CommandoWeapon.FireFMJ.PlayAnimation += (orig, self, duration) => { 
-			orig(self, duration); 
-			//RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); 
-			RoR2.Chat.AddMessage("FireFMJ.PlayAnimation " + self.GetFieldValue<float>("duration"));
-		};
-		*/
 
 	// Loader M1 Delay
 		On.EntityStates.Loader.SwingComboFist.PlayAnimation += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };

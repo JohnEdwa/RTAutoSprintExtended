@@ -13,7 +13,6 @@ using MonoMod.Cil;
 
 
 namespace RT_AutoSprint_Ex {
-//[BepInDependency("com.bepis.r2api")]
 [BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
 [BepInPlugin(GUID, NAME, VERSION)]
 
@@ -84,12 +83,30 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		On.EntityStates.Treebot.Weapon.AimMortar2.OnProjectileFiredLocal += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = false;};
 
 	// Acrid M1 delay to help with the animation cancelling issue
-			On.EntityStates.Croco.Slash.OnEnter += (orig, self) => { orig(self); 
-			RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("durationBeforeInterruptable"); 
-			};
+		//On.EntityStates.Croco.Slash.OnEnter += (orig, self) => { orig(self);  RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("durationBeforeInterruptable"); };
 
 	// Commando M1 delay
-		On.EntityStates.Commando.CommandoWeapon.FireFMJ.OnEnter  += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
+		On.EntityStates.Commando.CommandoWeapon.FirePistol2.OnEnter  += (orig, self) => { 
+			orig(self); 
+			RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); 
+		};
+		/*
+		On.EntityStates.Commando.CommandoWeapon.FireFMJ.OnEnter  += (orig, self) => { 
+			orig(self); 
+			//RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); 
+			RoR2.Chat.AddMessage("FireFMJ.OnEnter " + self.GetFieldValue<float>("duration"));
+		};
+		On.EntityStates.Commando.CommandoWeapon.FirePistol.OnEnter  += (orig, self) => { 
+			orig(self); 
+			//RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); 
+			RoR2.Chat.AddMessage("FirePistol.OnEnter " + self.GetFieldValue<float>("duration"));
+		};
+		On.EntityStates.Commando.CommandoWeapon.FireFMJ.PlayAnimation += (orig, self, duration) => { 
+			orig(self, duration); 
+			//RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); 
+			RoR2.Chat.AddMessage("FireFMJ.PlayAnimation " + self.GetFieldValue<float>("duration"));
+		};
+		*/
 
 	// Loader M1 Delay
 		On.EntityStates.Loader.SwingComboFist.PlayAnimation += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
@@ -101,7 +118,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 					c.GotoNext(
 						x => x.MatchLdarg(1),
 						x => x.MatchCallvirt<CharacterBody>("get_isSprinting")
-						);
+					);
 					c.Index += 0;
 					c.RemoveRange(2);
 					c.Emit(OpCodes.Ldc_I4, 0);
@@ -125,46 +142,45 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 					RoR2.CharacterBody instanceFieldBody = self.GetInstanceField<RoR2.CharacterBody>("body");
 					if (instanceFieldBody && RTAutoSprintEx.RT_enabled) {
 						RTAutoSprintEx.RT_isSprinting = instanceFieldBody.isSprinting;
-						if (!RTAutoSprintEx.RT_isSprinting) {
-							if (RTAutoSprintEx.RT_num > 0.1) {
-								RTAutoSprintEx.RT_num = 0.0;
-								switch(instanceFieldBody.baseNameToken){
-									case "COMMANDO_BODY_NAME":
-										skillsAllowAutoSprint = (true);
-										break;
-									case "HUNTRESS_BODY_NAME":
-										skillsAllowAutoSprint = (true);
-										break;
-									case "MAGE_BODY_NAME":
-										// If TOGGLE, just follow tempDisable, if HOLD disable when button released
-										if (RT_artiFlaming && !ArtificerFlamethrowerToggle.Value && !inputPlayer.GetButton("SpecialSkill")) RTAutoSprintEx.RT_tempDisable = false;
-										skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
-										break;
-									case "ENGI_BODY_NAME":
-										skillsAllowAutoSprint = (true);
-										break;
-									case "MERC_BODY_NAME":
-										skillsAllowAutoSprint = (true);
-										break;
-									case "TREEBOT_BODY_NAME":
-										skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
-										break;
-									case "LOADER_BODY_NAME":
-										skillsAllowAutoSprint = (true);
-										break;
-									case "CROCO_BODY_NAME":
-										skillsAllowAutoSprint = (true);
-										break;
-									case "TOOLBOT_BODY_NAME":
-										skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
-										break;
-									default:
-										skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
-										break;
-								}
-								RTAutoSprintEx.RT_isSprinting = skillsAllowAutoSprint;
+						if (!RTAutoSprintEx.RT_isSprinting && RTAutoSprintEx.RT_num > 0.1) {
+							RTAutoSprintEx.RT_num = 0.0;
+							switch(instanceFieldBody.baseNameToken){
+								case "COMMANDO_BODY_NAME":
+									skillsAllowAutoSprint = (true);
+									break;
+								case "HUNTRESS_BODY_NAME":
+									skillsAllowAutoSprint = (true);
+									break;
+								case "MAGE_BODY_NAME":
+									// If TOGGLE, just follow tempDisable, if HOLD disable when button released
+									if (RT_artiFlaming && !ArtificerFlamethrowerToggle.Value && !inputPlayer.GetButton("SpecialSkill")) RTAutoSprintEx.RT_tempDisable = false;
+									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
+									break;
+								case "ENGI_BODY_NAME":
+									skillsAllowAutoSprint = (true);
+									break;
+								case "MERC_BODY_NAME":
+									skillsAllowAutoSprint = (true);
+									break;
+								case "TREEBOT_BODY_NAME":
+									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
+									break;
+								case "LOADER_BODY_NAME":
+									skillsAllowAutoSprint = (true);
+									break;
+								case "CROCO_BODY_NAME":
+									skillsAllowAutoSprint = (true);
+									break;
+								case "TOOLBOT_BODY_NAME":
+									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
+									break;
+								default:
+									skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
+									break;
 							}
+							RTAutoSprintEx.RT_isSprinting = skillsAllowAutoSprint;
 						}
+						// Animation cancelling after stopping attack
 						if (RTAutoSprintEx.RT_num < -(AnimationCancelDelay.Value)
 							&& !inputPlayer.GetButton("PrimarySkill") 
 							&& !inputPlayer.GetButton("SecondarySkill") 

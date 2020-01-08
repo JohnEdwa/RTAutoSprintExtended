@@ -2,9 +2,8 @@
 #### Fixed & Extended by JohnEdwa, Original by Relocity and Thrawnarch
 #### Made and tested for RoR2 build-ID 4478858 - Hidden Realms Update
 
-The code can be found [at the Github repo here.](https://github.com/JohnEdwa/RTAutoSprintExtended).
-If you find something that doesn't work, please open an issue on Github.   
-Kudos to Relocity and Thrawnarch for creating the original mod.
+The code can be found [at the Github repo here.](https://github.com/JohnEdwa/RTAutoSprintExtended) If you find something that doesn't work, please open an issue on Github.   
+Kudos to Relocity and Thrawnarch for creating the original mod, and Rein and Harb (among many others) from the modding discord for help.
 
 ## The basics
 
@@ -23,11 +22,13 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 * `HoldSprintToWalk: [true]/false`: Holding down sprint disable auto-sprinting, forcing the character to walk.
 * `DisableSprintingCrosshair: [true]/false`: Disables the sprinting chevron crosshair.
 * `ArtificerFlamethrowerToggle: [true]/false`: Sets the flamethrower mode. Default is toggle cancellable by pressing the sprint key, alternative is a "Hold to cast" mode. Has a console command so you can change it on the fly: `rt_artiflamemode`: `toggle/true/1` or `hold/false/0`.
-* `AnimationCancelDelay: 0.0 [0.2] 1.0 `: How long to wait after attack button is released to animation cancel and sprint anyway.
+* `AnimationCancelDelay: 0.0-[0.2]-1.0 `: How long to wait after attack button is released to animation cancel and sprint anyway. Setting it too low can result in attacks not actually hitting yet.
 
 ## Known Issues
 
 * Acrid M1 animation cancelling is even more broken.
+* Arti flamethrower has a small animation glitch.
+* Backup Magazines might cause a small sprint glitch/FOV change between casts.
 * Custom survivors block sprinting based on button input, as long as Primary, Secondary or Special is held down you won't sprint.
 
 ## To-Do

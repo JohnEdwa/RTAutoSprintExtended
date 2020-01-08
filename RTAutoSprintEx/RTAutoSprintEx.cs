@@ -51,9 +51,9 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		HoldSprintToWalk = Config.Bind("", "HoldSprintToWalk", true, new ConfigDescription("General: Holding Sprint key temporarily disables auto-sprinting, making you to walk.", new AcceptableValueList<bool>(true, false)));
 		AnimationCancelDelay = Config.Bind("", "AnimationCancelDelay", 0.2, new ConfigDescription("General: Some skills can be animation cancelled by starting to sprint. This value sets how long to wait.", new AcceptableValueRange<double>(0.0, 1.0)));
 		DisableSprintingCrosshair = Config.Bind("", "DisableSprintingCrosshair", true, new ConfigDescription("General: Disables the (useless) sprinting crosshair. The most probable thing to break on game update.", new AcceptableValueList<bool>(true, false)));
-		DisableSpeedlines = Config.Bind("", "DisableSpeedlines", true, new ConfigDescription("General: Disables speedlines while sprinting", new AcceptableValueList<bool>(true, false)));
+		DisableSpeedlines = Config.Bind("", "DisableSpeedlines", false, new ConfigDescription("General: Disables speedlines while sprinting", new AcceptableValueList<bool>(true, false)));
         CustomFOV = Config.Bind("", "FOVValue", 60, new ConfigDescription("FOV : Change FOV. Set to -1 to disable and use default.", new AcceptableValueRange<int>(1, 359)));
-        DisableFOVChange = Config.Bind("", "DisableFOVChange", true, new ConfigDescription("FOV: Disables FOV change when sprinting", new AcceptableValueList<bool>(true, false)));
+        DisableFOVChange = Config.Bind("", "DisableFOVChange", false, new ConfigDescription("FOV: Disables FOV change when sprinting", new AcceptableValueList<bool>(true, false)));
 		SprintFOVMultiplier = Config.Bind("", "SprintFOVMultiplier", 1.3, new ConfigDescription("FOV: Sets a custom sprinting FOV multiplier.", new AcceptableValueRange<double>(0.1, 3)));
 
 	// Artificer Flamethrower workaround logic
@@ -262,7 +262,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
             }
 			Debug.Log("AutoSprint: CameraRigController.Update IL edits done.");
         };
-		Debug.Log("Loaded RT AutoSprint Extended\nArtificer flamethrower mode is" + ((ArtificerFlamethrowerToggle.Value) ? " [toggle]." : " [hold]."));
+		//Debug.Log("Loaded RT AutoSprint Extended: Artificer flamethrower mode is" + ((ArtificerFlamethrowerToggle.Value) ? " [toggle]." : " [hold]."));
 	} // End of Awake
 
 
@@ -270,13 +270,14 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 
 	[ConCommand(commandName = "rt_help", flags = ConVarFlags.ExecuteOnServer, helpText = "")]
 	private static void cc_rt_help(ConCommandArgs args) {
-		Debug.Log("'rt_enabled <bool>'\t Default: true. Enables/Disables the sprinting part of the mod.");
-		Debug.Log("'rt_fov <int>'\t Default: 60. Valid Range: 1-359. Sets the base FOV");
+		Debug.Log("'rt_enabled <bool>'. Default: true. Enables/Disables the sprinting part of the mod.");
+		Debug.Log("'rt_fov <int>'. Default: 60. Valid Range: 1-359. Sets the base FOV");
 		//Debug.Log("'rt_disable_fov_change <bool>'\t Default false.");
 		//Debug.Log("'rt_fov_multiplier <float>'\t Default: 1,3. Valid Range: 0.5-2.0. How much the camera FOV changes when sprinting.");
 		//Debug.Log("'rt_disable_speedlines <bool>'\t Default: false.");
 		//Debug.Log("'rt_disable_sprinting_crosshair <bool>'\t Default: true.");
-		Debug.Log("'rt_artificer_flamethrower_toggle <bool>'\t Default: true.");
+		Debug.Log("'rt_artificer_flamethrower_toggle <bool>'.  Default: true.");
+		Debug.Log("Rest of the options aren't run-time editable, you have to change them in the config.");
 	}
 
 	[ConCommand(commandName = "rt_enabled", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(bool)enabled")]
@@ -289,7 +290,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		} catch (Exception ex) { Debug.LogError(ex); }
 	}
 
-	[ConCommand(commandName = "rt_fov ", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(int)fov")]
+	[ConCommand(commandName = "rt_fov", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(int)fov")]
 	private static void cc_rt_fov (ConCommandArgs args) {
 		try {
 			args.CheckArgumentCount(1);

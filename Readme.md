@@ -1,4 +1,4 @@
-# Auto Sprint Extended
+# RT AutoSprint Extended
 ### Fixed & Extended by JohnEdwa, Original by Relocity and Thrawnarch
 #### Made and tested for RoR2 build-ID 4478858 - Hidden Realms Update
 
@@ -13,8 +13,9 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 ## Features and Changes
 * Works, for one thing.
 * Shows the correct crosshair while sprinting instead of the useless chevron.
-* You can modify the the FOV, sprinting FOV change, and speedline effect. 
-* Many survivors can auto-sprint while charging skills, even though starting the cast makes you walk.
+* You can modify the the FOV, sprinting FOV change, and speedline effect in the config. 
+* Should work for all default survivors, many of which can auto-sprint while charging skills even though starting the cast normally makes you walk.
+* Automatic animation cancelling when you stop attacking - no need to manually press "Sprint".
 * Artificer Flamethrower mode is configurable between the default Toggle and a "Hold to Cast".
 
 ## Configuration
@@ -22,8 +23,8 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
     * Console Command: `rt_artificer_flamethrower_toggle`.
 * `HoldSprintToWalk: [true]/false`: Holding down sprint disable auto-sprinting, forcing the character to walk.
 * `DisableSprintingCrosshair: [true]/false`: Disables the useless special sprinting chevron crosshair.
-* `DisableSpeedlines: [true]/false`: Disables the speedlines effect shown when sprinting. 
-* `DisableFOVChange: [true]/false`: Disables the FOV change when you sprint.  
+* `DisableSpeedlines: true/[false]`: Disables the speedlines effect shown when sprinting. 
+* `DisableFOVChange: true/[false]`: Disables the FOV change when you sprint.  
 * `SprintFOVMultiplier: [1.3] 0.5-2.0`: Sets the Sprinting FOV multiplier, if not disable with the above setting.
 * `CustomFOV: [60], 1-359`: Sets a custom (vertical) FOV. 60V is roughly 90H.
     * Console Command: `rt_fov`. 
@@ -34,7 +35,7 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 
 ## Known Issues
 
-* Acrid M1 animation cancelling is even more broken.
+* Acrid M1 animation cancelling is even more broken than vanilla.
 * Arti flamethrower has a small animation glitch at the start.
 * Custom survivors block sprinting based on button input: as long as Primary, Secondary or Special is held down you won't sprint.
 

@@ -178,12 +178,12 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 								RTAutoSprintEx.RT_isSprinting = false;
 							}
 						}
-					}
-				// Walking logic.
-					if (inputPlayer.GetButton("Sprint") && RTAutoSprintEx.RT_enabled) {
-						RTAutoSprintEx.RT_num = 1.0; 
-						if (HoldSprintToWalk.Value) RTAutoSprintEx.RT_isSprinting = false;
-						if (RT_artiFlaming) RTAutoSprintEx.RT_isSprinting = true;
+						// Walking logic.
+						if (inputPlayer.GetButton("Sprint")) {
+							RTAutoSprintEx.RT_num = 1.0; 
+							if (HoldSprintToWalk.Value) RTAutoSprintEx.RT_isSprinting = false;
+							if (RT_artiFlaming) RTAutoSprintEx.RT_isSprinting = true;
+						}
 					}
 				}
 
@@ -196,7 +196,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 
 	// Custom FOV
         On.RoR2.CameraRigController.Update += (orig, self) => {
-            self.baseFov = CustomFOV.Value;
+			if (CustomFOV.Value != self.baseFov) self.baseFov = CustomFOV.Value;
             orig(self);
         };
 
@@ -270,6 +270,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 
 	[ConCommand(commandName = "rt_help", flags = ConVarFlags.ExecuteOnServer, helpText = "")]
 	private static void cc_rt_help(ConCommandArgs args) {
+		Debug.Log("'rt_enabled <bool>'\t Default: true. Enables/Disables the sprinting part of the mod.");
 		Debug.Log("'rt_fov <int>'\t Default: 60. Valid Range: 1-359. Sets the base FOV");
 		//Debug.Log("'rt_disable_fov_change <bool>'\t Default false.");
 		//Debug.Log("'rt_fov_multiplier <float>'\t Default: 1,3. Valid Range: 0.5-2.0. How much the camera FOV changes when sprinting.");
@@ -278,18 +279,28 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		Debug.Log("'rt_artificer_flamethrower_toggle <bool>'\t Default: true.");
 	}
 
-	[ConCommand(commandName = "rt_fov", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(int)fov")]
-	private static void cc_rt_fov(ConCommandArgs args) {
+	[ConCommand(commandName = "rt_enabled", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(bool)enabled")]
+	private static void cc_rt_enabled(ConCommandArgs args) {
 		try {
 			args.CheckArgumentCount(1);
-			var value = int.Parse(args[0]);
-			if (value >= 1 && value <= 359) {		
-				CustomFOV.Value = value;
-				Debug.Log($"{nameof(CustomFOV)}={value}");
-			} else Debug.LogError("Value out of range (1 - 359): " + value);	
+			var value = bool.Parse(args[0]);			
+			RTAutoSprintEx.RT_enabled = value;
+			Debug.Log("RT_enabled: " + RTAutoSprintEx.RT_enabled);	
 		} catch (Exception ex) { Debug.LogError(ex); }
 	}
+
+	[ConCommand(commandName = "rt_fov ", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(int)fov")]
+	private static void cc_rt_fov (ConCommandArgs args) {
+		try {
+			args.CheckArgumentCount(1);
+			var value = int.Parse(args[0]);			
+			CustomFOV.Value = value;
+			Debug.Log($"{nameof(CustomFOV)}={value}");	
+		} catch (Exception ex) { Debug.LogError(ex); }
+	}
+
 /*
+
 	[ConCommand(commandName = "rt_disable_speedlines", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(bool)enabled")]
 	private static void cc_rt_speedlines(ConCommandArgs args) {
 		try {

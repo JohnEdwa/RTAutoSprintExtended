@@ -10,34 +10,33 @@ Kudos to Relocity and Thrawnarch for creating the original mod, and Rein and Har
 Your character will automatically sprint whenever the base game would allow you to sprint. This includes sprinting during some less obvious situations, such as when charging certain attacks or immediately after using utility skills.   
 The special (useless) sprinting crosshair is disabled, and holding sprint now makes you walk instead, if for some reason you wish to do so.
 
-## Features / Differences to the old version
-    * Works, for one thing
-    * Shows the correct crosshair while sprinting, instead of the useless chevron.
-    * FOV, Sprinting FOV and Speedlines can be configured.
-    * MUL-T autosprints while using the Buzzsaw or charging the Rebar Launcher.
-    * Added REX, Loader and Acrid with proper autosprinting.
-    * Commando, Huntress and Engineer can autosprint during more skills.
+## Features and Changes
+    * Works, for one thing.
+    * Shows the correct crosshair while sprinting instead of the useless chevron.
+    * You can modify the the FOV, sprinting FOV change, and speedline effect. 
+    * Many survivors can auto-sprint while charging skills, even though starting the cast makes you walk.
     * Artificer Flamethrower mode is configurable between the default Toggle and a "Hold to Cast".
 
 ## Configuration
     * `ArtificerFlamethrowerToggle: [true]/false`: Sets the flamethrower mode. Default is toggle cancellable by pressing the sprint key, alternative is a "Hold to cast" mode.
       * Console Command: `rt_artificer_flamethrower_toggle`.
     * `HoldSprintToWalk: [true]/false`: Holding down sprint disable auto-sprinting, forcing the character to walk.
-    * `DisableSprintingCrosshair: [true]/false`: Disables the sprinting chevron crosshair.
+    * `DisableSprintingCrosshair: [true]/false`: Disables the useless special sprinting chevron crosshair.
     * `DisableSpeedlines: [true]/false`: Disables the speedlines effect shown when sprinting. 
-    * `DisableFOVChange: [true]/false`: Disables the FOV change when you start to sprint.  
-    * `SprintFOVMultiplier: [1.3] 0.5-2.0`: Sets the Sprinting FOV multiplier.
+    * `DisableFOVChange: [true]/false`: Disables the FOV change when you sprint.  
+    * `SprintFOVMultiplier: [1.3] 0.5-2.0`: Sets the Sprinting FOV multiplier, if not disable with the above setting.
     * `CustomFOV: [60], 1-359`: Sets a custom (vertical) FOV. 60V is roughly 90H.
       * Console Command: `rt_fov`. 
-    * `AnimationCancelDelay: [0.2], 0.0-1.0 `: How long to wait after attack button is released to animation cancel and sprint anyway. 
+    * `AnimationCancelDelay: [0.2], 0.0-1.0 `: How long to wait after attack button is released to animation cancel and sprint anyway.
 
+    * Console Command: `rt_help` will list all possible console commands.
+    * Console Command: `rt_enabled` can be used to disable/enable most of the sprinting functionality.
 
 ## Known Issues
 
     * Acrid M1 animation cancelling is even more broken.
-    * Arti flamethrower has a small animation glitch.
-    * Backup Magazines might cause a small sprint glitch/FOV change between casts.
-    * Custom survivors block sprinting based on button input, as long as Primary, Secondary or Special is held down you won't sprint.
+    * Arti flamethrower has a small animation glitch at the start.
+    * Custom survivors block sprinting based on button input: as long as Primary, Secondary or Special is held down you won't sprint.
 
 ## To-Do
 

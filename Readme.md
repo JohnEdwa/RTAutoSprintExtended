@@ -11,6 +11,7 @@ Your character will automatically sprint whenever the base game would allow you 
 The special (useless) sprinting crosshair is disabled, and holding sprint now makes you walk instead, if for some reason you wish to do so.
 
 ## Features and Changes
+
 * Works, for one thing.
 * Shows the correct crosshair while sprinting instead of the useless chevron.
 * You can modify the the FOV, sprinting FOV change, and speedline effect in the config. 
@@ -19,6 +20,7 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 * Artificer Flamethrower mode is configurable between the default Toggle and a "Hold to Cast".
 
 ## Configuration
+
 * `ArtificerFlamethrowerToggle: [true]/false`: Sets the flamethrower mode. Default is toggle cancellable by pressing the sprint key, alternative is a "Hold to cast" mode.
     * Console Command: `rt_artificer_flamethrower_toggle`.
 * `HoldSprintToWalk: [true]/false`: Holding down sprint disable auto-sprinting, forcing the character to walk.
@@ -52,9 +54,11 @@ Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExten
 ## Changelog
 
 `1.0.3`
+
 * Removed debug F2 disable.
 
 `1.0.2`
+
 * Added FOV configuration and disabling speedlines.
 * Arti, Engi, Commando and Loader use the animation duration instead of a static delay between shots.
 * Automatic animation cancellation for the above.
@@ -63,9 +67,11 @@ Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExten
 * Other small tweaks.
 
 `1.0.1`
+
 * Initial release.
 
 `0.2.0`
+
 * Cleaned/rewrote the code. 
 * Added and fixed support for all survivors.
 * Removed the useless sprinting crosshair.
@@ -73,4 +79,5 @@ Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExten
 * Added config items for disabling crosshair and enabling walking.
 
 `0.1.0` 
+
 * Initial Version (Based on RT AutoSprint 1.0.5), fixed, and added Artificer flamethrower config.

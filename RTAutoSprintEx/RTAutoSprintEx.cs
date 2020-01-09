@@ -104,10 +104,12 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 
 	// Sprinting logic
 		On.RoR2.PlayerCharacterMasterController.FixedUpdate += delegate(On.RoR2.PlayerCharacterMasterController.orig_FixedUpdate orig, RoR2.PlayerCharacterMasterController self) {
+			/*
 			if (Input.GetKeyDown(KeyCode.F2)) {
 				RTAutoSprintEx.RT_enabled = !RTAutoSprintEx.RT_enabled;
 				RoR2.Chat.AddMessage("RTAutoSprintEx " + ((RTAutoSprintEx.RT_enabled) ? " enabled." : " disabled."));
 			}
+			*/
 
 			RTAutoSprintEx.RT_isSprinting = false;
 			bool skillsAllowAutoSprint = false;

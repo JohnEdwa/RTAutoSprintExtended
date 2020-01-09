@@ -51,6 +51,9 @@ Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExten
 
 ## Changelog
 
+`1.0.3`
+* Removed debug F2 disable.
+
 `1.0.2`
 * Added FOV configuration and disabling speedlines.
 * Arti, Engi, Commando and Loader use the animation duration instead of a static delay between shots.

@@ -53,9 +53,14 @@ Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExten
 
 ## Changelog
 
+`1.0.4`
+
+* Tiny tweak to the IL codes to remove an incompatibility with Rein's Rogue Wisp survivor.
+
 `1.0.3`
 
-* Removed debug F2 disable.
+* Removed a debug F2 disable, whoops.
+* Edited readme to (maybe) work with the Thunderstore Markdown parser.
 
 `1.0.2`
 

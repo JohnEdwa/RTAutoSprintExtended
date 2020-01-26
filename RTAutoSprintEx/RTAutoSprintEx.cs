@@ -208,14 +208,13 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 			if (DisableSprintingCrosshair.Value) {
 				Debug.Log("AutoSprint: Disabling sprinting crosshair:");
 				try {
-					c.GotoNext(
-						x => x.MatchLdarg(1),
+					c.Index = 0;
+					c.GotoNext ( 
+						MoveType.After, 
 						x => x.MatchCallvirt<CharacterBody>("get_isSprinting")
 					);
-					c.Index += 0;
-					c.RemoveRange(2);
 					c.Emit(OpCodes.Ldc_I4, 0);
-
+					c.Emit(OpCodes.And);
 				} catch (Exception ex) { Debug.LogError(ex); }
 			}
 		};		

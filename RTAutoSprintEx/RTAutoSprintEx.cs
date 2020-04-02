@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
-using System.Collections;
-using System.Linq;
+//using System.Collections;
+//using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
 using Rewired;
@@ -11,16 +11,33 @@ using RoR2;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 
+// TODO;
+// Huntress Primary | Flurry		  | Works
+// Commando Utility | Tactical slide  | Works
+// Acrid Utility    | Ravenous Bite   | Works
+// Engineer Utility | Hapoon Launcher | Needs to cancel sprint for aiming duration
+// Acrid Passive    | 				  | Works
+
+// Console commands
+// rt_fov <int> 					| doesn't work
+// rt_enabled 1/0					| needs testing
+// rt_artificer_flamethrower_toggle | needs testing
+
+// Bugs:
+// Sometimes doesn't activate fast enough?
+
+
 
 namespace RT_AutoSprint_Ex {
 [BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
 [BepInPlugin(GUID, NAME, VERSION)]
+[R2APISubmoduleDependency("CommandHelper")]
 
 public class RTAutoSprintEx : BaseUnityPlugin {
 	public const string
 		NAME = "RTAutoSprintEx",
 		GUID = "com.johnedwa." + NAME,
-		VERSION = "1.0.2";
+		VERSION = "1.0.5";
 
 	private static ConfigEntry<bool> HoldSprintToWalk;
 	private static ConfigEntry<bool> ArtificerFlamethrowerToggle;	
@@ -39,6 +56,8 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 
 	public void Awake() {
 
+		
+
 		RTAutoSprintEx.RT_num = 0.0;
 		RTAutoSprintEx.RT_enabled = true;
 		RTAutoSprintEx.RT_isSprinting = false;
@@ -46,7 +65,9 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		RTAutoSprintEx.RT_tempDisable = false;
 
 	// Configuration
-		On.RoR2.Console.Awake += (orig, self) => { CommandHelper.RegisterCommands(self); orig(self); };
+		R2API.Utils.CommandHelper.AddToConsoleWhenReady();
+		//On.RoR2.Console.Awake += (orig, self) => { CommandHelper.RegisterCommands(self); orig(self); };
+		
 		ArtificerFlamethrowerToggle = Config.Bind("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
 		HoldSprintToWalk = Config.Bind("", "HoldSprintToWalk", true, new ConfigDescription("General: Holding Sprint key temporarily disables auto-sprinting, making you to walk.", new AcceptableValueList<bool>(true, false)));
 		AnimationCancelDelay = Config.Bind("", "AnimationCancelDelay", 0.2, new ConfigDescription("General: Some skills can be animation cancelled by starting to sprint. This value sets how long to wait.", new AcceptableValueRange<double>(0.0, 1.0)));
@@ -69,6 +90,10 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	// Engineer mine workaround
 		On.EntityStates.Engi.EngiWeapon.FireMines.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 		On.EntityStates.Engi.EngiWeapon.FireSeekerGrenades.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
+
+	// Engineer Harpon logic
+	//	On.EntityStates.Engi.EngiMissilePainter.Startup += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = true; };
+	//	On.EntityStates.Engi.EngiMissilePainter.Finish += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = false; };
 
 	// MUL-T workaround logic, disable sprinting while using the Nailgun, Scrap Launcher, or Stun Grenade.
 		//Nailgun
@@ -114,20 +139,22 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 			RTAutoSprintEx.RT_isSprinting = false;
 			bool skillsAllowAutoSprint = false;
 			RoR2.NetworkUser networkUser = self.networkUser;
-			RoR2.InputBankTest instanceFieldBodyInputs = self.GetInstanceField<RoR2.InputBankTest>("bodyInputs");
+			RoR2.InputBankTest instanceFieldBodyInputs = self.GetFieldValue<RoR2.InputBankTest>("bodyInputs");
 			if (instanceFieldBodyInputs) {
 				if (networkUser && networkUser.localUser != null && !networkUser.localUser.isUIFocused) {
 					Player inputPlayer = networkUser.localUser.inputPlayer;
-					RoR2.CharacterBody instanceFieldBody = self.GetInstanceField<RoR2.CharacterBody>("body");
+					RoR2.CharacterBody instanceFieldBody = self.GetFieldValue<RoR2.CharacterBody>("body");
 					if (instanceFieldBody && RTAutoSprintEx.RT_enabled) {
 						RTAutoSprintEx.RT_isSprinting = instanceFieldBody.isSprinting;
 						if (!RTAutoSprintEx.RT_isSprinting && RTAutoSprintEx.RT_num > 0.1) {
 							RTAutoSprintEx.RT_num = 0.0;
 							switch(instanceFieldBody.baseNameToken){
 								case "COMMANDO_BODY_NAME":
-									skillsAllowAutoSprint = (true);
-									break;
 								case "HUNTRESS_BODY_NAME":
+								case "ENGI_BODY_NAME":
+								case "MERC_BODY_NAME":
+								case "LOADER_BODY_NAME":
+								case "CROCO_BODY_NAME":
 									skillsAllowAutoSprint = (true);
 									break;
 								case "MAGE_BODY_NAME":
@@ -135,20 +162,8 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 									if (RT_artiFlaming && !ArtificerFlamethrowerToggle.Value && !inputPlayer.GetButton("SpecialSkill")) RTAutoSprintEx.RT_tempDisable = false;
 									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
 									break;
-								case "ENGI_BODY_NAME":
-									skillsAllowAutoSprint = (true);
-									break;
-								case "MERC_BODY_NAME":
-									skillsAllowAutoSprint = (true);
-									break;
 								case "TREEBOT_BODY_NAME":
 									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
-									break;
-								case "LOADER_BODY_NAME":
-									skillsAllowAutoSprint = (true);
-									break;
-								case "CROCO_BODY_NAME":
-									skillsAllowAutoSprint = (true);
 									break;
 								case "TOOLBOT_BODY_NAME":
 									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
@@ -176,7 +191,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 							Vector3 moveVector = instanceFieldBodyInputs.moveVector;
 							moveVector.y = 0f;
 							moveVector.Normalize();
-							if (Vector3.Dot(aimDirection, moveVector) < self.GetInstanceField<float>("sprintMinAimMoveDot")) {
+							if (Vector3.Dot(aimDirection, moveVector) < self.GetFieldValue<float>("sprintMinAimMoveDot")) {
 								RTAutoSprintEx.RT_isSprinting = false;
 							}
 						}
@@ -269,7 +284,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 
 	// Console Commands
 
-	[ConCommand(commandName = "rt_help", flags = ConVarFlags.ExecuteOnServer, helpText = "")]
+	[RoR2.ConCommand(commandName = "rt_help", flags = ConVarFlags.ExecuteOnServer, helpText = "")]
 	private static void cc_rt_help(ConCommandArgs args) {
 		Debug.Log("'rt_enabled <bool>'. Default: true. Enables/Disables the sprinting part of the mod.");
 		Debug.Log("'rt_fov <int>'. Default: 60. Valid Range: 1-359. Sets the base FOV");
@@ -281,7 +296,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		Debug.Log("Rest of the options aren't run-time editable, you have to change them in the config.");
 	}
 
-	[ConCommand(commandName = "rt_enabled", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(bool)enabled")]
+	[RoR2.ConCommand(commandName = "rt_enabled", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(bool)enabled")]
 	private static void cc_rt_enabled(ConCommandArgs args) {
 		try {
 			args.CheckArgumentCount(1);
@@ -291,7 +306,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		} catch (Exception ex) { Debug.LogError(ex); }
 	}
 
-	[ConCommand(commandName = "rt_fov", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(int)fov")]
+	[RoR2.ConCommand(commandName = "rt_fov", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(int)fov")]
 	private static void cc_rt_fov (ConCommandArgs args) {
 		try {
 			args.CheckArgumentCount(1);
@@ -300,6 +315,16 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 			Debug.Log($"{nameof(CustomFOV)}={value}");	
 		} catch (Exception ex) { Debug.LogError(ex); }
 	}
+
+	[RoR2.ConCommand(commandName = "rt_artificer_flamethrower_toggle", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(bool)enabled")]
+	private static void cc_rt_artificer_flamethrower_toggle(ConCommandArgs args) {
+		try {
+			args.CheckArgumentCount(1);
+			var value = bool.Parse(args[0]);			
+			ArtificerFlamethrowerToggle.Value = value;
+			Debug.Log($"{nameof(ArtificerFlamethrowerToggle)}={value}");	
+		} catch (Exception ex) { Debug.LogError(ex); }
+	}	
 
 /*
 
@@ -345,18 +370,11 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		} catch (Exception ex) { Debug.LogError(ex); }
 	}
 */
-	[ConCommand(commandName = "rt_artificer_flamethrower_toggle", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(bool)enabled")]
-	private static void cc_rt_artificer_flamethrower_toggle(ConCommandArgs args) {
-		try {
-			args.CheckArgumentCount(1);
-			var value = bool.Parse(args[0]);			
-			ArtificerFlamethrowerToggle.Value = value;
-			Debug.Log($"{nameof(ArtificerFlamethrowerToggle)}={value}");	
-		} catch (Exception ex) { Debug.LogError(ex); }
-	}
+
 } // End of class RTAutoSprintEx
 
 // Helper classes
+/*
 public class CommandHelper {
 	public static void RegisterCommands(RoR2.Console self) {
 		var types = typeof(CommandHelper).Assembly.GetTypes();
@@ -373,17 +391,5 @@ public class CommandHelper {
 		}
 	}
 }
-public static class Utils
-{
-	public static T GetInstanceField<T>(this object instance, string fieldName) {
-		BindingFlags bindingAttr = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-		FieldInfo field = instance.GetType().GetField(fieldName, bindingAttr);
-		return (T)((object)field.GetValue(instance));
-	}
-	public static void SetInstanceField<T>(this object instance, string fieldName, T value) {
-		BindingFlags bindingAttr = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-		FieldInfo field = instance.GetType().GetField(fieldName, bindingAttr);
-		field.SetValue(instance, value);
-	}
-}
+*/
 } // End of Namespace

@@ -1,6 +1,5 @@
 # RT AutoSprint Extended
 ### Fixed & Extended by JohnEdwa, Original by Relocity and Thrawnarch
-#### Made and tested for RoR2 build-ID 4478858 - Hidden Realms Update
 
 The code can be found [at the Github repo here.](https://github.com/JohnEdwa/RTAutoSprintExtended) If you find something that doesn't work, please open an issue on Github.   
 Kudos to Relocity and Thrawnarch for creating the original mod, and Rein and Harb (among many others) from the modding Discord for help.
@@ -52,6 +51,10 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExtended) or find me on the RoR2 modding discord (JohnEdwa).
 
 ## Changelog
+
+`1.0.5`
+
+* Artifacts update release.
 
 `1.0.4`
 

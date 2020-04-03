@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Reflection;
+//using System.Reflection;
 //using System.Collections;
 //using System.Linq;
 using BepInEx;
@@ -10,23 +10,6 @@ using R2API.Utils;
 using RoR2;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-
-// TODO;
-// Huntress Primary | Flurry		  | Works
-// Commando Utility | Tactical slide  | Works
-// Acrid Utility    | Ravenous Bite   | Works
-// Engineer Utility | Hapoon Launcher | Needs to cancel sprint for aiming duration
-// Acrid Passive    | 				  | Works
-
-// Console commands
-// rt_fov <int> 					| doesn't work
-// rt_enabled 1/0					| needs testing
-// rt_artificer_flamethrower_toggle | needs testing
-
-// Bugs:
-// Sometimes doesn't activate fast enough?
-
-
 
 namespace RT_AutoSprint_Ex {
 [BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
@@ -55,8 +38,6 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	private static bool RT_tempDisable;
 
 	public void Awake() {
-
-		
 
 		RTAutoSprintEx.RT_num = 0.0;
 		RTAutoSprintEx.RT_enabled = true;
@@ -92,8 +73,8 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		On.EntityStates.Engi.EngiWeapon.FireSeekerGrenades.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 
 	// Engineer Harpon logic
-	//	On.EntityStates.Engi.EngiMissilePainter.Startup += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = true; };
-	//	On.EntityStates.Engi.EngiMissilePainter.Finish += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = false; };
+		On.EntityStates.Engi.EngiMissilePainter.Paint.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = true;};
+		On.EntityStates.Engi.EngiMissilePainter.Paint.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = false;};
 
 	// MUL-T workaround logic, disable sprinting while using the Nailgun, Scrap Launcher, or Stun Grenade.
 		//Nailgun
@@ -151,21 +132,19 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 							switch(instanceFieldBody.baseNameToken){
 								case "COMMANDO_BODY_NAME":
 								case "HUNTRESS_BODY_NAME":
-								case "ENGI_BODY_NAME":
 								case "MERC_BODY_NAME":
 								case "LOADER_BODY_NAME":
 								case "CROCO_BODY_NAME":
-									skillsAllowAutoSprint = (true);
+									skillsAllowAutoSprint = true;
+									break;
+								case "TREEBOT_BODY_NAME":
+								case "ENGI_BODY_NAME":	
+								case "TOOLBOT_BODY_NAME":
+									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
 									break;
 								case "MAGE_BODY_NAME":
 									// If TOGGLE, just follow tempDisable, if HOLD disable when button released
 									if (RT_artiFlaming && !ArtificerFlamethrowerToggle.Value && !inputPlayer.GetButton("SpecialSkill")) RTAutoSprintEx.RT_tempDisable = false;
-									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
-									break;
-								case "TREEBOT_BODY_NAME":
-									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
-									break;
-								case "TOOLBOT_BODY_NAME":
 									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
 									break;
 								default:
@@ -293,16 +272,18 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		//Debug.Log("'rt_disable_speedlines <bool>'\t Default: false.");
 		//Debug.Log("'rt_disable_sprinting_crosshair <bool>'\t Default: true.");
 		Debug.Log("'rt_artificer_flamethrower_toggle <bool>'.  Default: true.");
-		Debug.Log("Rest of the options aren't run-time editable, you have to change them in the config.");
+		Debug.Log("Rest of the options aren't run-time editable, you have to change them in the config:");
+		Debug.Log("AnimationCancelDelay, HoldSprintToWalk, DisableSprintingCrosshair, DisableSpeedlines, DisableFOVChange, SprintFOVMultiplier");
 	}
 
 	[RoR2.ConCommand(commandName = "rt_enabled", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(bool)enabled")]
 	private static void cc_rt_enabled(ConCommandArgs args) {
 		try {
 			args.CheckArgumentCount(1);
-			var value = bool.Parse(args[0]);			
-			RTAutoSprintEx.RT_enabled = value;
-			Debug.Log("RT_enabled: " + RTAutoSprintEx.RT_enabled);	
+			if (TryParseBool(args[0], out bool result)) {
+				RTAutoSprintEx.RT_enabled = (bool)result;
+				Debug.Log($"{nameof(RTAutoSprintEx.RT_enabled)}={RTAutoSprintEx.RT_enabled}");
+			}	
 		} catch (Exception ex) { Debug.LogError(ex); }
 	}
 
@@ -310,9 +291,11 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	private static void cc_rt_fov (ConCommandArgs args) {
 		try {
 			args.CheckArgumentCount(1);
-			var value = int.Parse(args[0]);			
-			CustomFOV.Value = value;
-			Debug.Log($"{nameof(CustomFOV)}={value}");	
+			int? value = args.TryGetArgInt(0);
+			if (value.HasValue) {		
+				CustomFOV.Value = (int)value;
+				Debug.Log($"{nameof(CustomFOV)}={value}");	
+			}
 		} catch (Exception ex) { Debug.LogError(ex); }
 	}
 
@@ -320,76 +303,17 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	private static void cc_rt_artificer_flamethrower_toggle(ConCommandArgs args) {
 		try {
 			args.CheckArgumentCount(1);
-			var value = bool.Parse(args[0]);			
-			ArtificerFlamethrowerToggle.Value = value;
-			Debug.Log($"{nameof(ArtificerFlamethrowerToggle)}={value}");	
+			if (TryParseBool(args[0], out bool result)) {	
+				ArtificerFlamethrowerToggle.Value = result;
+				Debug.Log($"{nameof(ArtificerFlamethrowerToggle)}={result}");
+			}	
 		} catch (Exception ex) { Debug.LogError(ex); }
 	}	
 
-/*
 
-	[ConCommand(commandName = "rt_disable_speedlines", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(bool)enabled")]
-	private static void cc_rt_speedlines(ConCommandArgs args) {
-		try {
-			args.CheckArgumentCount(1);
-			var value = bool.Parse(args[0]);			
-			DisableSpeedlines.Value = value;
-			Debug.Log($"{nameof(DisableSpeedlines)}={value}");	
-		} catch (Exception ex) { Debug.LogError(ex); }
-	}
-
-	[ConCommand(commandName = "rt_disable_fov_change", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(bool)enabled")]
-	private static void cc_rt_disable_fov_change(ConCommandArgs args) {
-		try {
-			args.CheckArgumentCount(1);
-			var value = bool.Parse(args[0]);			
-			DisableFOVChange.Value = value;
-			Debug.Log($"{nameof(DisableFOVChange)}={value}");	
-		} catch (Exception ex) { Debug.LogError(ex); }
-	}
-	
-	[ConCommand(commandName = "rt_fov_multiplier", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(float)multiplier")]
-	private static void cc_rt_fov_multiplier(ConCommandArgs args) {
-		try {
-			args.CheckArgumentCount(1);
-			var value = float.Parse(args[0]);
-			if (value >= 0.1 && value <= 2.0) {		
-				SprintFOVMultiplier.Value = value;
-				Debug.Log($"{nameof(SprintFOVMultiplier)}={value});
-			} else Debug.LogError("Value out of range (0.1 - 2.0): " + value);
-		} catch (Exception ex) { Debug.LogError(ex); }
-	}
-
-	[ConCommand(commandName = "rt_disable_sprinting_crosshair", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(bool)enabled")]
-	private static void rt_disable_sprinting_crosshair(ConCommandArgs args) {
-		try {
-			args.CheckArgumentCount(1);
-			var value = bool.Parse(args[0]);			
-			DisableSprintingCrosshair.Value = value;
-			Debug.Log($"{nameof(SprintFOVMultiplier)}={value}");	
-		} catch (Exception ex) { Debug.LogError(ex); }
-	}
-*/
+internal static bool TryParseBool(string input, out bool result){
+    if(bool.TryParse(input,out result)){return true;}
+	if(int.TryParse(input,out int val)) { result = val > 0 ? true : false; return true; } return false;}
 
 } // End of class RTAutoSprintEx
-
-// Helper classes
-/*
-public class CommandHelper {
-	public static void RegisterCommands(RoR2.Console self) {
-		var types = typeof(CommandHelper).Assembly.GetTypes();
-		var catalog = self.GetFieldValue<IDictionary>("concommandCatalog");
-		foreach (var methodInfo in types.SelectMany(x => x.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))) {
-			var customAttributes = methodInfo.GetCustomAttributes(false);
-			foreach (var attribute in customAttributes.OfType<RoR2.ConCommandAttribute>()) {
-				var conCommand = Reflection.GetNestedType<RoR2.Console>("ConCommand").Instantiate();
-				conCommand.SetFieldValue("flags", attribute.flags);
-				conCommand.SetFieldValue("helpText", attribute.helpText);
-				conCommand.SetFieldValue("action", (RoR2.Console.ConCommandDelegate)Delegate.CreateDelegate(typeof(RoR2.Console.ConCommandDelegate), methodInfo));
-				catalog[attribute.commandName.ToLower()] = conCommand;
-			}
-		}
-	}
-}
-*/
 } // End of Namespace

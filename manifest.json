@@ -5,6 +5,6 @@
     "description": "(BuildID: 4478858) RT AutoSprint fixed and enhanced with more features. Sprint automatically, but only when you would be allowed to do so in the first place.",
     "dependencies": [
       "bbepis-BepInExPack-3.2.0",
-      "tristanmcpherson-R2API-2.4.2"
+      "tristanmcpherson-R2API-2.4.10"
     ]
 }

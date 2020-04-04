@@ -1,5 +1,5 @@
 ﻿using System;
-//using System.Reflection;
+using System.Reflection;
 //using System.Collections;
 //using System.Linq;
 using BepInEx;
@@ -100,34 +100,44 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		On.EntityStates.Croco.Slash.PlayAnimation += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 
 	// Commando M1 delay
-		On.EntityStates.Commando.CommandoWeapon.FirePistol2.OnEnter  += (orig, self) => { 
-			orig(self); 
-			RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); 
-		};
+		On.EntityStates.Commando.CommandoWeapon.FirePistol2.OnEnter  += (orig, self) => {  orig(self);  RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 
 	// Loader M1 Delay
 		On.EntityStates.Loader.SwingComboFist.PlayAnimation += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 
+	// Adas
+	/*
+		On.RoR2.CharacterBody.OnSkillActivated += (orig, self, GenericSkill) => { 
+		orig(self, GenericSkill); 
+			RoR2.Chat.AddMessage(
+				GenericSkill.skillDef.skillName + " | Index: "
+			);
+	*/
+	/*
+		RoR2.Chat.AddMessage(
+			GenericSkill.skillName + 
+			" | CDRemain: " + GenericSkill.cooldownRemaining + 
+			" | RechargeInterval: " + GenericSkill.baseRechargeInterval +
+			" | FinalRecharge: " + GenericSkill.GetFieldValue<float>("finalRechargeInterval") +
+			" | CooldownScale: " + GenericSkill.cooldownScale
+		);
+		
+		};
+ 	*/
+
 	// Sprinting logic
 		On.RoR2.PlayerCharacterMasterController.FixedUpdate += delegate(On.RoR2.PlayerCharacterMasterController.orig_FixedUpdate orig, RoR2.PlayerCharacterMasterController self) {
-			/*
-			if (Input.GetKeyDown(KeyCode.F2)) {
-				RTAutoSprintEx.RT_enabled = !RTAutoSprintEx.RT_enabled;
-				RoR2.Chat.AddMessage("RTAutoSprintEx " + ((RTAutoSprintEx.RT_enabled) ? " enabled." : " disabled."));
-			}
-			*/
-
 			RTAutoSprintEx.RT_isSprinting = false;
 			bool skillsAllowAutoSprint = false;
 			RoR2.NetworkUser networkUser = self.networkUser;
-			RoR2.InputBankTest instanceFieldBodyInputs = self.GetFieldValue<RoR2.InputBankTest>("bodyInputs");
+			RoR2.InputBankTest instanceFieldBodyInputs = self.GetInstanceField<RoR2.InputBankTest>("bodyInputs");
 			if (instanceFieldBodyInputs) {
 				if (networkUser && networkUser.localUser != null && !networkUser.localUser.isUIFocused) {
 					Player inputPlayer = networkUser.localUser.inputPlayer;
-					RoR2.CharacterBody instanceFieldBody = self.GetFieldValue<RoR2.CharacterBody>("body");
+					RoR2.CharacterBody instanceFieldBody = self.GetInstanceField<RoR2.CharacterBody>("body");
 					if (instanceFieldBody && RTAutoSprintEx.RT_enabled) {
 						RTAutoSprintEx.RT_isSprinting = instanceFieldBody.isSprinting;
-						if (!RTAutoSprintEx.RT_isSprinting && RTAutoSprintEx.RT_num > 0.1) {
+						if (!RTAutoSprintEx.RT_isSprinting && RTAutoSprintEx.RT_num >= 0.1) {
 							RTAutoSprintEx.RT_num = 0.0;
 							switch(instanceFieldBody.baseNameToken){
 								case "COMMANDO_BODY_NAME":
@@ -316,4 +326,23 @@ internal static bool TryParseBool(string input, out bool result){
 	if(int.TryParse(input,out int val)) { result = val > 0 ? true : false; return true; } return false;}
 
 } // End of class RTAutoSprintEx
+
+// Utilities
+	public static class Utils
+	{
+		public static T GetInstanceField<T>(this object instance, string fieldName)
+		{
+			BindingFlags bindingAttr = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+			FieldInfo field = instance.GetType().GetField(fieldName, bindingAttr);
+			return (T)((object)field.GetValue(instance));
+		}
+
+		public static void SetInstanceField<T>(this object instance, string fieldName, T value)
+		{
+			BindingFlags bindingAttr = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+			FieldInfo field = instance.GetType().GetField(fieldName, bindingAttr);
+			field.SetValue(instance, value);
+		}
+	}
+
 } // End of Namespace

@@ -28,7 +28,6 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 * `SprintFOVMultiplier: [1.3] 0.5-2.0`: Sets the Sprinting FOV multiplier, if not disable with the above setting.
 * `CustomFOV: [60], 1-359`: Sets a custom (vertical) FOV. 60V is roughly 90H.
 * `AnimationCancelDelay: [0.2], 0.0-1.0 `: How long to wait after attack button is released to animation cancel and sprint anyway.
-
 * Console Command: `rt_help` will list all possible console commands.
 * Console Command: `rt_enabled` can be used to disable/enable most of the sprinting functionality.
 * Console Command: `rt_fov` changes CustomFOV.
@@ -53,6 +52,10 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExtended) or find me on the RoR2 modding discord (JohnEdwa).
 
 ## Changelog
+
+`1.0.6`
+
+* Hopefully fixed sprinting sometimes not being activated again correctly.
 
 `1.0.5`
 

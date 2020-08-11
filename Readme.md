@@ -55,10 +55,6 @@ Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExten
 
 ## Changelog
 
-`1.0.8`
-
-* Updated for 1.0
-
 `1.0.7`
 
 * Following skills should now correctly cancel or cast when you tap sprint: Engineer Harpoon Launcher, Artificer Ice Wall, MUL-T Blast Canister, REX Drill/Seed Barrage

@@ -1,5 +1,13 @@
 ﻿// Todo checklist:
 /*
+
+1.0 changes:
+
+ * MUL-T fix exiting nailgun shooting
+ * Add the new character
+ * remove utility skill code as that is handled by the game now
+
+
 Test that Artificer flamethrower still works properly
 Check all chargeable skills - should they cancel, do they cancel
  * done: Commando: Grenade Throw

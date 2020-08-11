@@ -22,6 +22,7 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 
 * `ArtificerFlamethrowerToggle: [true]/false`: Sets the flamethrower mode. Default is toggle cancellable by pressing the sprint key, alternative is a "Hold to cast" mode.
 * `HoldSprintToWalk: [true]/false`: Holding down sprint disable auto-sprinting, forcing the character to walk.
+* `SprintInAnyDirection: true/[false]`: Allows you to sprint in any direction.
 * `DisableSprintingCrosshair: [true]/false`: Disables the useless special sprinting chevron crosshair.
 * `DisableSpeedlines: true/[false]`: Disables the speedlines effect shown when sprinting. 
 * `DisableFOVChange: true/[false]`: Disables the FOV change when you sprint.  
@@ -32,6 +33,7 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 * Console Command: `rt_enabled` can be used to disable/enable most of the sprinting functionality.
 * Console Command: `rt_fov` changes CustomFOV.
 * Console Command: `rt_artificer_flamethrower_toggle` sets the flamethrower mode.
+* Console Command: `rt_sprintcheat` disables angle checking and allows you to sprint in any direction.
 
 ## Known Issues
 
@@ -52,6 +54,15 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExtended) or find me on the RoR2 modding discord (JohnEdwa).
 
 ## Changelog
+
+`1.0.8`
+
+* Updated for 1.0
+
+`1.0.7`
+
+* Following skills should now correctly cancel or cast when you tap sprint: Engineer Harpoon Launcher, Artificer Ice Wall, MUL-T Blast Canister, REX Drill/Seed Barrage
+* Added a config for a 360 sprinting cheat on request. Enable from the config or using the console command `rt_sprintcheat`.
 
 `1.0.6`
 

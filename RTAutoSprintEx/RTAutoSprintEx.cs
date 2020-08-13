@@ -3,20 +3,15 @@
 
 1.0 changes:
 
- * MUL-T fix exiting nailgun shooting
- * Add the new character
- * remove utility skill code as that is handled by the game now
+ * Captain - EntityStates.Captain.Weapon:
+	FireTazer
+	FireCaptainShotgun
+	SetupAirstrike
+	SetupSupplyDrop
+	CallAirstrike 1/2/3/Base/Enter
+	CallSupplyDrop Base/EquipmentRestock/Force/Hacking/Healing/Plating/Shocking
 
 
-Test that Artificer flamethrower still works properly
-Check all chargeable skills - should they cancel, do they cancel
- * done: Commando: Grenade Throw
- * done: Huntress: Arrow Rain NO/NO, Ballista NO/NO
- * done: Multi: Blast Canister YES/
- * done: Engi: Turret Deploy NO/NO, Harpoon YES/YES
- * done: Artificer: Nano Bomb NO/NO, Nano Spear NO/NO, Flamethrower YES/YES, Ice Wall YES/
- * done: REX: Drill YES/, Barrage YES/
- * Loader: Chargefists NO/NO
 
 */
 
@@ -34,9 +29,10 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 
 namespace RT_AutoSprint_Ex {
+[R2APISubmoduleDependency(nameof(CommandHelper))]
 [BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
 [BepInPlugin(GUID, NAME, VERSION)]
-[R2APISubmoduleDependency("CommandHelper")]
+
 
 public class RTAutoSprintEx : BaseUnityPlugin {
 	public const string
@@ -73,7 +69,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		//On.RoR2.Console.Awake += (orig, self) => { CommandHelper.RegisterCommands(self); orig(self); };
 		
 		ArtificerFlamethrowerToggle = Config.Bind("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
-		HoldSprintToWalk = Config.Bind("", "HoldSprintToWalk", true, new ConfigDescription("General: Holding Sprint key temporarily disables auto-sprinting, making you to walk.", new AcceptableValueList<bool>(true, false)));
+		HoldSprintToWalk = Config.Bind("", "HoldSprintToWalk", true, new ConfigDescription("General: Holding Sprint key temporarily disables auto-sprinting, making you walk.", new AcceptableValueList<bool>(true, false)));
 		SprintInAnyDirection = Config.Bind("", "SprintInAnyDirection", false, new ConfigDescription("Cheat: Allows you to sprint in any direction.", new AcceptableValueList<bool>(true, false)));
 		AnimationCancelDelay = Config.Bind("", "AnimationCancelDelay", 0.2, new ConfigDescription("General: Some skills can be animation cancelled by starting to sprint. This value sets how long to wait.", new AcceptableValueRange<double>(0.0, 1.0)));
 		DisableSprintingCrosshair = Config.Bind("", "DisableSprintingCrosshair", true, new ConfigDescription("General: Disables the (useless) sprinting crosshair. The most probable thing to break on game update.", new AcceptableValueList<bool>(true, false)));
@@ -104,7 +100,6 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	// MUL-T
 		//Nailgun
 		On.EntityStates.FireNailgun.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = true; };
-		//On.EntityStates.FireNailgun.FixedUpdate += (orig, self) => { orig(self); if (self.GetFieldValue<bool>("beginToCooldown")) {RTAutoSprintEx.RT_tempDisable = false;}; };
 		On.EntityStates.NailgunFinalBurst.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = false; };
 		// Scrap Launcher
 		On.EntityStates.Toolbot.FireGrenadeLauncher.PlayAnimation += (orig, self, duration) => { orig(self, duration); RTAutoSprintEx.RT_num = -duration; };
@@ -130,27 +125,34 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	// Loader M1 Delay
 		On.EntityStates.Loader.SwingComboFist.PlayAnimation += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 
-	// Adas
-/* 			On.RoR2.CharacterBody.OnSkillActivated += (orig, self, GenericSkill) => { 
+	// Captain
+		//On.EntityStates.Captain.Weapon.FireTazer.OnEnter += (orig, self) => { orig(self); };
+	/*
+		EntityStates.Captain.Weapon:
+		FireTazer
+		FireCaptainShotgun
+		SetupAirstrike
+		SetupSupplyDrop
+		CallAirstrike 1/2/3/Base/Enter
+		CallSupplyDrop Base/EquipmentRestock/Force/Hacking/Healing/Plating/Shocking
+	*/
+
+	// This could be eventually used to do all the disabling stuff without touching the skills themselves, I think.
+	/*
+ 		On.RoR2.CharacterBody.OnSkillActivated += (orig, self, GenericSkill) => { 
 			orig(self, GenericSkill); 
 				RoR2.Chat.AddMessage(
 					GenericSkill.skillDef.skillName + " | Index: "
 				);
-
-			// RoR2.Chat.AddMessage(
-			// 	GenericSkill.skillName + 
-			// 	" | CDRemain: " + GenericSkill.cooldownRemaining + 
-			// 	" | RechargeInterval: " + GenericSkill.baseRechargeInterval +
-			// 	" | FinalRecharge: " + GenericSkill.GetFieldValue<float>("finalRechargeInterval") +
-			// 	" | CooldownScale: " + GenericSkill.cooldownScale
-			// );
-		}; */
+		};
+	*/
 
 
 	// Sprinting logic
 		On.RoR2.PlayerCharacterMasterController.FixedUpdate += delegate(On.RoR2.PlayerCharacterMasterController.orig_FixedUpdate orig, RoR2.PlayerCharacterMasterController self) {
 			RTAutoSprintEx.RT_isSprinting = false;
 			bool skillsAllowAutoSprint = false;
+			bool knownSurvivor = true;
 			RoR2.NetworkUser networkUser = self.networkUser;
 			RoR2.InputBankTest instanceFieldBodyInputs = self.GetInstanceField<RoR2.InputBankTest>("bodyInputs");
 			if (instanceFieldBodyInputs) {
@@ -159,9 +161,8 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 					RoR2.CharacterBody instanceFieldBody = self.GetInstanceField<RoR2.CharacterBody>("body");
 					if (instanceFieldBody && RTAutoSprintEx.RT_enabled) {
 						RTAutoSprintEx.RT_isSprinting = instanceFieldBody.isSprinting;
-						if (!RTAutoSprintEx.RT_isSprinting && RTAutoSprintEx.RT_num >= 0.1) {
-							RTAutoSprintEx.RT_num = 0.0;
-							switch(instanceFieldBody.baseNameToken){
+						knownSurvivor = true;
+						switch(instanceFieldBody.baseNameToken){
 								case "COMMANDO_BODY_NAME":
 								case "HUNTRESS_BODY_NAME":
 								case "MERC_BODY_NAME":
@@ -180,44 +181,50 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
 									break;
 								default:
-									skillsAllowAutoSprint = false;
+									knownSurvivor = false;
+									//skillsAllowAutoSprint = false;
 									//skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
 									break;
 							}
-							RTAutoSprintEx.RT_isSprinting = skillsAllowAutoSprint;
-						}
-						// Animation cancelling after stopping attack
-						if (RTAutoSprintEx.RT_num < -(AnimationCancelDelay.Value)
-							&& !inputPlayer.GetButton("PrimarySkill") 
-							&& !inputPlayer.GetButton("SecondarySkill") 
-							&& !inputPlayer.GetButton("SpecialSkill")
-							&& !inputPlayer.GetButton("UtilitySkill")) 
-							{ RTAutoSprintEx.RT_num = -(AnimationCancelDelay.Value); }
-						if (!RTAutoSprintEx.RT_isSprinting) RTAutoSprintEx.RT_num += (double)Time.deltaTime;
-
-					// Disable sprinting if the movement angle is too large
- 						if (RTAutoSprintEx.RT_isSprinting) {
-							Vector3 aimDirection = instanceFieldBodyInputs.aimDirection;
-							aimDirection.y = 0f;
-							aimDirection.Normalize();
-							Vector3 moveVector = instanceFieldBodyInputs.moveVector;
-							moveVector.y = 0f;
-							moveVector.Normalize();
-							if ((Vector3.Dot(aimDirection, moveVector) < self.GetFieldValue<float>("sprintMinAimMoveDot")) && !RTAutoSprintEx.SprintInAnyDirection.Value) {
-								RTAutoSprintEx.RT_isSprinting = false;
+						if (knownSurvivor) {
+							if (!RTAutoSprintEx.RT_isSprinting && RTAutoSprintEx.RT_num >= 0.1) {
+								RTAutoSprintEx.RT_num = 0.0;
+								RTAutoSprintEx.RT_isSprinting = skillsAllowAutoSprint;
 							}
-						} 
-						// Walking logic.
-						if (inputPlayer.GetButton("Sprint")) {
-							RTAutoSprintEx.RT_num = 1.0; 
-							if (HoldSprintToWalk.Value) RTAutoSprintEx.RT_isSprinting = false;
-							if (RT_cancelWithSprint) RTAutoSprintEx.RT_isSprinting = true;
+							// Animation cancelling after stopping attack
+							if (RTAutoSprintEx.RT_num < -(AnimationCancelDelay.Value)
+								&& !inputPlayer.GetButton("PrimarySkill") 
+								&& !inputPlayer.GetButton("SecondarySkill") 
+								&& !inputPlayer.GetButton("SpecialSkill")
+								&& !inputPlayer.GetButton("UtilitySkill")) 
+								{ RTAutoSprintEx.RT_num = -(AnimationCancelDelay.Value); }
+							if (!RTAutoSprintEx.RT_isSprinting) RTAutoSprintEx.RT_num += (double)Time.deltaTime;
+
+						// Disable sprinting if the movement angle is too large
+							if (RTAutoSprintEx.RT_isSprinting) {
+								Vector3 aimDirection = instanceFieldBodyInputs.aimDirection;
+								aimDirection.y = 0f;
+								aimDirection.Normalize();
+								Vector3 moveVector = instanceFieldBodyInputs.moveVector;
+								moveVector.y = 0f;
+								moveVector.Normalize();
+								if ((Vector3.Dot(aimDirection, moveVector) < self.GetFieldValue<float>("sprintMinAimMoveDot")) && !RTAutoSprintEx.SprintInAnyDirection.Value) {
+									RTAutoSprintEx.RT_isSprinting = false;
+								}
+							} 
+							// Walking logic.
+							if (inputPlayer.GetButton("Sprint")) {
+								RTAutoSprintEx.RT_num = 1.0; 
+								if (HoldSprintToWalk.Value) RTAutoSprintEx.RT_isSprinting = false;
+								if (RT_cancelWithSprint) RTAutoSprintEx.RT_isSprinting = true;
+							}
 						}
 					}
 				}
 
 				orig.Invoke(self);
-				if (instanceFieldBodyInputs && RTAutoSprintEx.RT_enabled) {
+
+				if (instanceFieldBodyInputs && RTAutoSprintEx.RT_enabled && knownSurvivor) {
 					instanceFieldBodyInputs.sprint.PushState(RTAutoSprintEx.RT_isSprinting);
 				}
 			}

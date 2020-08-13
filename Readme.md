@@ -57,8 +57,9 @@ Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExten
 
 `1.0.8`
 
-* Fixed some 1.0 issues, added Captain.
-* Removed the very poor partial support for unspecified/custom survivors, it just breaks things.
+* Fixed some 1.0 issues.
+* Added Captain.
+* Removed the very poor partial support for unspecified/custom survivors as it just breaks things.
 
 `1.0.7`
 

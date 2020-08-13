@@ -1,4 +1,4 @@
-# RT AutoSprint Extended | BuildID: 4811921
+# RT AutoSprint Extended | BuildID: 5381045
 ### Fixed & Extended by JohnEdwa, Original by Relocity and Thrawnarch
 
 The code can be found [at the Github repo here.](https://github.com/JohnEdwa/RTAutoSprintExtended) If you find something that doesn't work, please open an issue on Github.   
@@ -46,7 +46,7 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 
 * Rewrite the mod to work from detecting what skill is being used, instead of editing each skill.
 * Make all config console commands update at runtime.
-* Figure a better way to handle custom survivors.
+* Figure a ~~better~~ way to handle custom survivors.
 * Add an option to disable REX burrowing under the ground on sprint.
 
 ## Contact
@@ -54,6 +54,11 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExtended) or find me on the RoR2 modding discord (JohnEdwa).
 
 ## Changelog
+
+`1.0.8`
+
+* Fixed some 1.0 issues, added Captain.
+* Removed the very poor partial support for unspecified/custom survivors, it just breaks things.
 
 `1.0.7`
 

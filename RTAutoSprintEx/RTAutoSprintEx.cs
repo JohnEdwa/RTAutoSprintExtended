@@ -42,7 +42,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	public const string
 		NAME = "RTAutoSprintEx",
 		GUID = "com.johnedwa." + NAME,
-		VERSION = "1.0.7";
+		VERSION = "1.0.8";
 
 	private static ConfigEntry<bool> HoldSprintToWalk;
 	private static ConfigEntry<bool> SprintInAnyDirection;
@@ -98,17 +98,14 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		On.EntityStates.Engi.EngiWeapon.FireMines.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 		On.EntityStates.Engi.EngiWeapon.FireSeekerGrenades.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 		// Harpoon
-		On.EntityStates.Engi.EngiMissilePainter.Paint.OnEnter += (orig, self) => { orig(self); 
-		RoR2.Chat.AddMessage("Paint.OnEnter()");
-		RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true;};
-		On.EntityStates.Engi.EngiMissilePainter.Paint.OnExit += (orig, self) => { orig(self); 
-		RoR2.Chat.AddMessage("Paint.OnExit()");
-		RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
+		On.EntityStates.Engi.EngiMissilePainter.Paint.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true;};
+		On.EntityStates.Engi.EngiMissilePainter.Paint.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
 
 	// MUL-T
 		//Nailgun
 		On.EntityStates.FireNailgun.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = true; };
-		On.EntityStates.FireNailgun.FixedUpdate += (orig, self) => { orig(self); if (self.GetFieldValue<bool>("beginToCooldown")) {RTAutoSprintEx.RT_tempDisable = false;}; };
+		//On.EntityStates.FireNailgun.FixedUpdate += (orig, self) => { orig(self); if (self.GetFieldValue<bool>("beginToCooldown")) {RTAutoSprintEx.RT_tempDisable = false;}; };
+		On.EntityStates.NailgunFinalBurst.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = false; };
 		// Scrap Launcher
 		On.EntityStates.Toolbot.FireGrenadeLauncher.PlayAnimation += (orig, self, duration) => { orig(self, duration); RTAutoSprintEx.RT_num = -duration; };
 		// Stun Grenade (M2)
@@ -183,7 +180,8 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
 									break;
 								default:
-									skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
+									skillsAllowAutoSprint = false;
+									//skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
 									break;
 							}
 							RTAutoSprintEx.RT_isSprinting = skillsAllowAutoSprint;

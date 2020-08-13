@@ -9,10 +9,10 @@
       <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\BepInEx\core\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="MMHOOK_Assembly-CSharp">
-      <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\BepInEx\plugins\tristanmcpherson-R2API\R2API\MMHOOK_Assembly-CSharp.dll</HintPath>
+      <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\BepInEx\plugins\R2API\MMHOOK_Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="R2API">
-      <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\BepInEx\plugins\tristanmcpherson-R2API\R2API\R2API.dll</HintPath>
+      <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\BepInEx\plugins\R2API\R2API.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil">
       <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\BepInEx\core\Mono.Cecil.dll</HintPath>

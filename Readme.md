@@ -40,7 +40,7 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 * Visions of Heresy will animation cancel as you sprint between every shot.
 * Acrid M1 animation cancelling is even more broken than vanilla.
 * Arti flamethrower has a small animation glitch at the start.
-* Custom survivors block sprinting based on button input: as long as Primary, Secondary or Special is held down you won't sprint.
+* Custom survivors aren't supported, but the mod now shouldn't break them either.
 
 ## To-Do
 

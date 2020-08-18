@@ -23,7 +23,7 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
-<Reference Include="Mono.Security">
+    <Reference Include="Mono.Security">
       <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\Mono.Security.dll</HintPath>
     </Reference>
     <Reference Include="Facepunch.Steamworks">

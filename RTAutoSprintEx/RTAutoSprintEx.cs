@@ -1,20 +1,4 @@
-﻿// Todo checklist:
-/*
-
-1.0 changes:
-
- * Captain - EntityStates.Captain.Weapon:
-	FireTazer
-	FireCaptainShotgun
-	SetupAirstrike
-	SetupSupplyDrop
-	CallAirstrike 1/2/3/Base/Enter
-	CallSupplyDrop Base/EquipmentRestock/Force/Hacking/Healing/Plating/Shocking
-
-
-
-*/
-
+﻿
 using System;
 using System.Reflection;
 //using System.Collections;
@@ -29,6 +13,7 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 
 namespace RT_AutoSprint_Ex {
+[NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
 [R2APISubmoduleDependency(nameof(CommandHelper))]
 [BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
 [BepInPlugin(GUID, NAME, VERSION)]
@@ -120,22 +105,18 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		On.EntityStates.Croco.Slash.PlayAnimation += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 
 	// Commando M1 delay
-		On.EntityStates.Commando.CommandoWeapon.FirePistol2.OnEnter  += (orig, self) => {  orig(self);  RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
+		On.EntityStates.Commando.CommandoWeapon.FirePistol2.OnEnter += (orig, self) => {  orig(self);  RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 
 	// Loader M1 Delay
 		On.EntityStates.Loader.SwingComboFist.PlayAnimation += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 
+
 	// Captain
-		//On.EntityStates.Captain.Weapon.FireTazer.OnEnter += (orig, self) => { orig(self); };
-	/*
-		EntityStates.Captain.Weapon:
-		FireTazer
-		FireCaptainShotgun
-		SetupAirstrike
-		SetupSupplyDrop
-		CallAirstrike 1/2/3/Base/Enter
-		CallSupplyDrop Base/EquipmentRestock/Force/Hacking/Healing/Plating/Shocking
-	*/
+		On.EntityStates.Captain.Weapon.SetupAirstrike.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
+		On.EntityStates.Captain.Weapon.SetupAirstrike.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
+		On.EntityStates.Captain.Weapon.SetupSupplyDrop.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
+		On.EntityStates.Captain.Weapon.SetupSupplyDrop.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
+
 
 	// This could be eventually used to do all the disabling stuff without touching the skills themselves, I think.
 	/*
@@ -173,6 +154,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 								case "ENGI_BODY_NAME":	
 								case "TREEBOT_BODY_NAME":
 								case "TOOLBOT_BODY_NAME":
+								case "CAPTAIN_BODY_NAME":
 									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
 									break;								
 								case "MAGE_BODY_NAME":

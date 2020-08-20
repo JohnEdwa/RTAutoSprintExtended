@@ -1,8 +1,8 @@
 {
     "name": "RTAutoSprintEx",
-    "version_number": "1.0.8",
+    "version_number": "1.1.0",
     "website_url": "https://github.com/JohnEdwa/RTAutoSprintExtended",
-    "description": "(BuildID: 5381045) RT AutoSprint fixed and enhanced with more features. Sprint automatically, but only when you would be allowed to do so in the first place.",
+    "description": "RT AutoSprint fixed and enhanced with more features. Sprint automatically, but only when you would be allowed to do so in the first place.",
     "dependencies": [
       "bbepis-BepInExPack-5.3.1",
       "tristanmcpherson-R2API-2.5.6"

@@ -20,6 +20,7 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 
 ## Configuration
 
+* `CustomSurvivorDisable: []` : List of custom survivors names that are disabled. The name is printed to the chat and log at spawn. Example: "CustomSurvivorDisable: = SNIPER_NAME AKALI GOKU". 
 * `ArtificerFlamethrowerToggle: [true]/false`: Sets the flamethrower mode. Default is toggle cancellable by pressing the sprint key, alternative is a "Hold to cast" mode.
 * `HoldSprintToWalk: [true]/false`: Holding down sprint disable auto-sprinting, forcing the character to walk.
 * `SprintInAnyDirection: true/[false]`: Allows you to sprint in any direction.
@@ -51,9 +52,13 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 
 ## Contact
 
-Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExtended) or find me on the RoR2 modding discord (JohnEdwa).
+Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExtended) or find me on the RoR2 modding discord (JohnEdwa#7903).
 
 ## Changelog
+
+`1.1.0`
+
+* Slightly better custom survivor support, the config file can be used to disable AutoSprinting for survivors that break.
 
 `1.0.8`
 

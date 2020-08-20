@@ -23,9 +23,10 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	public const string
 		NAME = "RTAutoSprintEx",
 		GUID = "com.johnedwa." + NAME,
-		VERSION = "1.0.8";
+		VERSION = "1.1.0";
 
-	private static ConfigEntry<bool> HoldSprintToWalk;
+	private static ConfigEntry<string> CustomSurvivors;
+	private static ConfigEntry<bool> HoldSprintToWalk ;
 	private static ConfigEntry<bool> SprintInAnyDirection;
 	private static ConfigEntry<bool> ArtificerFlamethrowerToggle;	
 	private static ConfigEntry<bool> DisableSprintingCrosshair;
@@ -40,6 +41,8 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	private static bool RT_isSprinting;
 	private static bool RT_cancelWithSprint;
 	private static bool RT_tempDisable;
+	private string[] RT_CustomSurvivors;
+	private bool RT_CustomSurvivorDisable;
 
 	public void Awake() {
 
@@ -48,11 +51,14 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		RTAutoSprintEx.RT_isSprinting = false;
 		RTAutoSprintEx.RT_cancelWithSprint = false;
 		RTAutoSprintEx.RT_tempDisable = false;
+		RT_CustomSurvivorDisable = false;
+		bool firstrun = true;
 
 	// Configuration
 		R2API.Utils.CommandHelper.AddToConsoleWhenReady();
 		//On.RoR2.Console.Awake += (orig, self) => { CommandHelper.RegisterCommands(self); orig(self); };
 		
+		CustomSurvivors = Config.Bind("", "CustomSurvivorDisable", "", new ConfigDescription("List of custom survivors names that are disabled. The name is printed to the chat and log at spawn. Example: 'CustomSurvivorDisable: = SNIPER_NAME AKALI GOKU'"));
 		ArtificerFlamethrowerToggle = Config.Bind("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
 		HoldSprintToWalk = Config.Bind("", "HoldSprintToWalk", true, new ConfigDescription("General: Holding Sprint key temporarily disables auto-sprinting, making you walk.", new AcceptableValueList<bool>(true, false)));
 		SprintInAnyDirection = Config.Bind("", "SprintInAnyDirection", false, new ConfigDescription("Cheat: Allows you to sprint in any direction.", new AcceptableValueList<bool>(true, false)));
@@ -117,7 +123,6 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		On.EntityStates.Captain.Weapon.SetupSupplyDrop.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
 		On.EntityStates.Captain.Weapon.SetupSupplyDrop.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
 
-
 	// This could be eventually used to do all the disabling stuff without touching the skills themselves, I think.
 	/*
  		On.RoR2.CharacterBody.OnSkillActivated += (orig, self, GenericSkill) => { 
@@ -128,21 +133,24 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		};
 	*/
 
+	On.RoR2.PlayerCharacterMasterController.OnEnable += (orig, self) => { orig(self); firstrun = true;};
 
 	// Sprinting logic
 		On.RoR2.PlayerCharacterMasterController.FixedUpdate += delegate(On.RoR2.PlayerCharacterMasterController.orig_FixedUpdate orig, RoR2.PlayerCharacterMasterController self) {
-			RTAutoSprintEx.RT_isSprinting = false;
+
+			orig.Invoke(self);
+
+			//RTAutoSprintEx.RT_isSprinting = false;
 			bool skillsAllowAutoSprint = false;
 			bool knownSurvivor = true;
 			RoR2.NetworkUser networkUser = self.networkUser;
 			RoR2.InputBankTest instanceFieldBodyInputs = self.GetInstanceField<RoR2.InputBankTest>("bodyInputs");
 			if (instanceFieldBodyInputs) {
 				if (networkUser && networkUser.localUser != null && !networkUser.localUser.isUIFocused) {
-					Player inputPlayer = networkUser.localUser.inputPlayer;
 					RoR2.CharacterBody instanceFieldBody = self.GetInstanceField<RoR2.CharacterBody>("body");
 					if (instanceFieldBody && RTAutoSprintEx.RT_enabled) {
+						Player inputPlayer = networkUser.localUser.inputPlayer;
 						RTAutoSprintEx.RT_isSprinting = instanceFieldBody.isSprinting;
-						knownSurvivor = true;
 						switch(instanceFieldBody.baseNameToken){
 								case "COMMANDO_BODY_NAME":
 								case "HUNTRESS_BODY_NAME":
@@ -163,9 +171,32 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
 									break;
 								default:
-									knownSurvivor = false;
-									//skillsAllowAutoSprint = false;
-									//skillsAllowAutoSprint = (!inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SecondarySkill") && !inputPlayer.GetButton("SpecialSkill"));
+
+									if (firstrun) {
+										firstrun = false;
+										RT_CustomSurvivorDisable = false;
+										char[] delimiterChars = { ' ', ',', '.', ':', '\t' };
+										RT_CustomSurvivors = CustomSurvivors.Value.Split(delimiterChars);
+
+										if (RT_CustomSurvivors != null) {
+											foreach (var survivor in RT_CustomSurvivors)
+											{
+												if (instanceFieldBody.baseNameToken == survivor) {
+													RoR2.Chat.AddMessage("Custom Survivor Disable for '" + survivor + "' was found and RTAutosprint was disabled.");
+													RT_CustomSurvivorDisable = true;
+													break;
+												}
+											}
+										}
+
+										if (!RT_CustomSurvivorDisable) {
+											RoR2.Chat.AddMessage("Custom Survivor'" + instanceFieldBody.baseNameToken + "' detected."); 
+										}
+									}
+
+									if (RT_CustomSurvivorDisable) {knownSurvivor = false;};
+									if (knownSurvivor) skillsAllowAutoSprint = true;
+									
 									break;
 							}
 						if (knownSurvivor) {
@@ -203,8 +234,6 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 						}
 					}
 				}
-
-				orig.Invoke(self);
 
 				if (instanceFieldBodyInputs && RTAutoSprintEx.RT_enabled && knownSurvivor) {
 					instanceFieldBodyInputs.sprint.PushState(RTAutoSprintEx.RT_isSprinting);

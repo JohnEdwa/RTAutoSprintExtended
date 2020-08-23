@@ -56,6 +56,10 @@ Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExten
 
 ## Changelog
 
+`1.1.1`
+
+* Fixed an issue causing MUL-T sprinting to break if you swapped from the nailgun to another weapon while firing.
+
 `1.1.0`
 
 * Slightly better custom survivor support, the config file can be used to disable AutoSprinting for survivors that break.

@@ -56,7 +56,6 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 
 	// Configuration
 		R2API.Utils.CommandHelper.AddToConsoleWhenReady();
-		//On.RoR2.Console.Awake += (orig, self) => { CommandHelper.RegisterCommands(self); orig(self); };
 		
 		CustomSurvivors = Config.Bind("", "CustomSurvivorDisable", "", new ConfigDescription("List of custom survivors names that are disabled. The name is printed to the chat and log at spawn. Example: 'CustomSurvivorDisable: = SNIPER_NAME AKALI GOKU'"));
 		ArtificerFlamethrowerToggle = Config.Bind("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
@@ -91,7 +90,8 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	// MUL-T
 		//Nailgun
 		On.EntityStates.FireNailgun.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = true; };
-		On.EntityStates.NailgunFinalBurst.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = false; };
+		On.EntityStates.FireNailgun.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = false; };
+
 		// Scrap Launcher
 		On.EntityStates.Toolbot.FireGrenadeLauncher.PlayAnimation += (orig, self, duration) => { orig(self, duration); RTAutoSprintEx.RT_num = -duration; };
 		// Stun Grenade (M2)

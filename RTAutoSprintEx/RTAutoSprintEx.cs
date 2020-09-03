@@ -1,8 +1,6 @@
 ﻿
 using System;
 using System.Reflection;
-//using System.Collections;
-//using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
 using Rewired;
@@ -12,7 +10,7 @@ using RoR2;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 
-namespace RT_AutoSprint_Ex {
+namespace RTAutoSprintEx {
 [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
 [R2APISubmoduleDependency(nameof(CommandHelper))]
 [BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
@@ -23,18 +21,18 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	public const string
 		NAME = "RTAutoSprintEx",
 		GUID = "com.johnedwa." + NAME,
-		VERSION = "1.1.0";
+		VERSION = "1.1.2";
 
-	private static ConfigEntry<string> CustomSurvivors;
-	private static ConfigEntry<bool> HoldSprintToWalk ;
-	private static ConfigEntry<bool> SprintInAnyDirection;
-	private static ConfigEntry<bool> ArtificerFlamethrowerToggle;	
-	private static ConfigEntry<bool> DisableSprintingCrosshair;
-	private static ConfigEntry<double> AnimationCancelDelay;
-	private static ConfigEntry<bool> DisableFOVChange;
-	private static ConfigEntry<bool> DisableSpeedlines;
-	private static ConfigEntry<int> CustomFOV;
-	private static ConfigEntry<double> SprintFOVMultiplier;
+	public static ConfigEntry<string> CustomSurvivors { get; set; }
+	public static ConfigEntry<bool> HoldSprintToWalk { get; set; }
+	public static ConfigEntry<bool> SprintInAnyDirection { get; set; }
+	public static ConfigEntry<bool> ArtificerFlamethrowerToggle { get; set; }	
+	public static ConfigEntry<bool> DisableSprintingCrosshair { get; set; }
+	public static ConfigEntry<double> AnimationCancelDelay { get; set; }
+	public static ConfigEntry<bool> DisableFOVChange { get; set; }
+	public static ConfigEntry<bool> DisableSpeedlines { get; set; }
+	public static ConfigEntry<int> CustomFOV { get; set; }
+	public static ConfigEntry<double> SprintFOVMultiplier { get; set; }
 
 	private static double RT_num;
 	private static bool RT_enabled;
@@ -57,16 +55,16 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	// Configuration
 		R2API.Utils.CommandHelper.AddToConsoleWhenReady();
 		
-		CustomSurvivors = Config.Bind("", "CustomSurvivorDisable", "", new ConfigDescription("List of custom survivors names that are disabled. The name is printed to the chat and log at spawn. Example: 'CustomSurvivorDisable: = SNIPER_NAME AKALI GOKU'"));
-		ArtificerFlamethrowerToggle = Config.Bind("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
-		HoldSprintToWalk = Config.Bind("", "HoldSprintToWalk", true, new ConfigDescription("General: Holding Sprint key temporarily disables auto-sprinting, making you walk.", new AcceptableValueList<bool>(true, false)));
-		SprintInAnyDirection = Config.Bind("", "SprintInAnyDirection", false, new ConfigDescription("Cheat: Allows you to sprint in any direction.", new AcceptableValueList<bool>(true, false)));
-		AnimationCancelDelay = Config.Bind("", "AnimationCancelDelay", 0.2, new ConfigDescription("General: Some skills can be animation cancelled by starting to sprint. This value sets how long to wait.", new AcceptableValueRange<double>(0.0, 1.0)));
-		DisableSprintingCrosshair = Config.Bind("", "DisableSprintingCrosshair", true, new ConfigDescription("General: Disables the (useless) sprinting crosshair. The most probable thing to break on game update.", new AcceptableValueList<bool>(true, false)));
-		DisableSpeedlines = Config.Bind("", "DisableSpeedlines", false, new ConfigDescription("General: Disables speedlines while sprinting", new AcceptableValueList<bool>(true, false)));
-        CustomFOV = Config.Bind("", "FOVValue", 60, new ConfigDescription("FOV : Change FOV. Set to -1 to disable and use default.", new AcceptableValueRange<int>(1, 359)));
-        DisableFOVChange = Config.Bind("", "DisableFOVChange", false, new ConfigDescription("FOV: Disables FOV change when sprinting", new AcceptableValueList<bool>(true, false)));
-		SprintFOVMultiplier = Config.Bind("", "SprintFOVMultiplier", 1.3, new ConfigDescription("FOV: Sets a custom sprinting FOV multiplier.", new AcceptableValueRange<double>(0.1, 3)));
+		CustomSurvivors = Config.Bind<string>("", "CustomSurvivorDisable", "", new ConfigDescription("List of custom survivors names that are disabled. The name is printed to the chat and log at spawn. Example: 'CustomSurvivorDisable: = SNIPER_NAME AKALI GOKU'"));
+		ArtificerFlamethrowerToggle = Config.Bind<bool>("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
+		HoldSprintToWalk = Config.Bind<bool>("", "HoldSprintToWalk", true, new ConfigDescription("General: Holding Sprint key temporarily disables auto-sprinting, making you walk.", new AcceptableValueList<bool>(true, false)));
+		SprintInAnyDirection = Config.Bind<bool>("", "SprintInAnyDirection", false, new ConfigDescription("Cheat: Allows you to sprint in any direction.", new AcceptableValueList<bool>(true, false)));
+		AnimationCancelDelay = Config.Bind<double>("", "AnimationCancelDelay", 0.2, new ConfigDescription("General: Some skills can be animation cancelled by starting to sprint. This value sets how long to wait.", new AcceptableValueRange<double>(0.0, 1.0)));
+		DisableSprintingCrosshair = Config.Bind<bool>("", "DisableSprintingCrosshair", true, new ConfigDescription("General: Disables the (useless) sprinting crosshair. The most probable thing to break on game update.", new AcceptableValueList<bool>(true, false)));
+		DisableSpeedlines = Config.Bind<bool>("", "DisableSpeedlines", false, new ConfigDescription("General: Disables speedlines while sprinting", new AcceptableValueList<bool>(true, false)));
+        CustomFOV = Config.Bind<int>("", "FOVValue", 60, new ConfigDescription("FOV : Change FOV. Set to -1 to disable and use default.", new AcceptableValueRange<int>(1, 359)));
+        DisableFOVChange = Config.Bind<bool>("", "DisableFOVChange", false, new ConfigDescription("FOV: Disables FOV change when sprinting", new AcceptableValueList<bool>(true, false)));
+		SprintFOVMultiplier = Config.Bind<double>("", "SprintFOVMultiplier", 1.3, new ConfigDescription("FOV: Sets a custom sprinting FOV multiplier.", new AcceptableValueRange<double>(0.1, 3)));
 
 	// Artificer
 		//Flamethrower
@@ -93,10 +91,14 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		On.EntityStates.FireNailgun.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = false; };
 
 		// Scrap Launcher
-		On.EntityStates.Toolbot.FireGrenadeLauncher.PlayAnimation += (orig, self, duration) => { orig(self, duration); RTAutoSprintEx.RT_num = -duration; };
+		On.EntityStates.Toolbot.FireGrenadeLauncher.PlayAnimation += (orig, self, duration) => { orig(self, duration); RTAutoSprintEx.RT_num = -duration; RTAutoSprintEx.RT_tempDisable = false;};
+		
 		// Stun Grenade (M2)
 		On.EntityStates.Toolbot.AimGrenade.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
 		On.EntityStates.Toolbot.RecoverAimStunDrone.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
+
+		// Workaround for the stance swap issue
+		On.EntityStates.Toolbot.StartToolbotStanceSwap.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
 
 	// REX workaround logic
 		On.EntityStates.Treebot.Weapon.FireSyringe.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
@@ -107,7 +109,6 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		On.EntityStates.Treebot.Weapon.AimMortar2.OnProjectileFiredLocal += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false;};
 
 	// Acrid M1 delay to help with the animation cancelling issue
-		//On.EntityStates.Croco.Slash.OnEnter += (orig, self) => { orig(self);  RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("durationBeforeInterruptable"); };
 		On.EntityStates.Croco.Slash.PlayAnimation += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 
 	// Commando M1 delay
@@ -124,14 +125,9 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		On.EntityStates.Captain.Weapon.SetupSupplyDrop.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
 
 	// This could be eventually used to do all the disabling stuff without touching the skills themselves, I think.
-	/*
- 		On.RoR2.CharacterBody.OnSkillActivated += (orig, self, GenericSkill) => { 
-			orig(self, GenericSkill); 
-				RoR2.Chat.AddMessage(
-					GenericSkill.skillDef.skillName + " | Index: "
-				);
-		};
-	*/
+	
+ 		//On.RoR2.CharacterBody.OnSkillActivated += (orig, self, GenericSkill) => { orig(self, GenericSkill); RoR2.Chat.AddMessage( GenericSkill.skillDef.skillName + " | Index: ");};
+	
 
 	On.RoR2.PlayerCharacterMasterController.OnEnable += (orig, self) => { orig(self); firstrun = true;};
 
@@ -251,7 +247,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		IL.RoR2.UI.CrosshairManager.UpdateCrosshair += (il) => {
 			ILCursor c = new ILCursor(il);
 			if (DisableSprintingCrosshair.Value) {
-				Debug.Log("AutoSprint: Disabling sprinting crosshair:");
+				Debug.Log("RtAutoSprintEx: Disabling sprinting crosshair:");
 				try {
 					c.Index = 0;
 					c.GotoNext ( 
@@ -268,7 +264,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		IL.RoR2.CameraRigController.Update += (il) => {
             ILCursor c = new ILCursor(il);
             if (DisableFOVChange.Value) {
-				Debug.Log("AutoSprint: Disabling Sprint FOV Change:");
+				Debug.Log("RtAutoSprintEx: Disabling Sprint FOV Change:");
 				try {
 					c.Index = 0;
 					c.GotoNext(
@@ -280,7 +276,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 					c.RemoveRange(10);
 				} catch (Exception ex) { Debug.LogError(ex); }
             } else if (!DisableFOVChange.Value && SprintFOVMultiplier.Value != 1.3) {
-				Debug.Log("AutoSprint: Modifying Sprint FOV Multiplier:");
+				Debug.Log("RtAutoSprintEx: Modifying Sprint FOV Multiplier:");
 				try {
 					c.Index = 0;
 					c.GotoNext(
@@ -294,7 +290,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 				} catch (Exception ex) { Debug.LogError(ex); }
         	}
             if (DisableSpeedlines.Value) {
-				Debug.Log("AutoSprint: Disabling Speedlines:");
+				Debug.Log("RtAutoSprintEx: Disabling Speedlines:");
 				try {
 					c.Index = 0;
 					c.GotoNext(
@@ -306,15 +302,14 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 					c.Emit(OpCodes.Ldc_I4, 1);
 				} catch (Exception ex) { Debug.LogError(ex); }
             }
-			Debug.Log("AutoSprint: CameraRigController.Update IL edits done.");
+			Debug.Log("RtAutoSprintEx: CameraRigController.Update IL edits done.");
         };
-		//Debug.Log("Loaded RT AutoSprint Extended: Artificer flamethrower mode is" + ((ArtificerFlamethrowerToggle.Value) ? " [toggle]." : " [hold]."));
 	} // End of Awake
 
 
 	// Console Commands
 
-	[RoR2.ConCommand(commandName = "rt_help", flags = ConVarFlags.ExecuteOnServer, helpText = "")]
+	[RoR2.ConCommand(commandName = "rt_help", flags = ConVarFlags.ExecuteOnServer, helpText = "List all RTAutoSprintEx console commands.")]
 	private static void cc_rt_help(ConCommandArgs args) {
 		Debug.Log("'rt_enabled <bool>'. Default: true. Enables/Disables the sprinting part of the mod.");
 		Debug.Log("'rt_sprintcheat <bool>'. Default: false. Allows you to sprint in any direction.");

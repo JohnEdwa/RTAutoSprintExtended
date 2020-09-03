@@ -1,4 +1,4 @@
-# RT AutoSprint Extended | BuildID: 5381045
+# RT AutoSprint Extended | Game ver. 1.0.1.1
 
 *Fixed & Extended by JohnEdwa, Original by Relocity and Thrawnarch.*
 
@@ -8,7 +8,7 @@ Kudos to Relocity and Thrawnarch for creating the original mod, and Rein and Har
 ## The Basics
 
 Your character will automatically sprint whenever the base game would allow you to sprint. This includes sprinting during some less obvious situations, such as when charging certain attacks or immediately after using utility skills.
-The special (useless) sprinting crosshair is disabled, and holding sprint now makes you walk instead, if for some reason you wish to do so.
+The special (useless) sprinting crosshair is disabled, holding sprint now makes you walk instead, and you can configure FOV and related settings.
 
 ## Features and Changes
 
@@ -21,16 +21,27 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 
 ## Configuration
 
+### Survivors
+
 * `CustomSurvivorDisable: []` : List of custom survivors names that won't auto-sprint. The name is printed to the chat at spawn. Example: "CustomSurvivorDisable: = SNIPER_NAME AKALI".
 * `ArtificerFlamethrowerToggle: [true]/false`: Sets the flamethrower mode. Default is toggle cancellable by pressing the sprint key, alternative is a "Hold to cast" mode.
+* `AnimationCancelDelay: [0.2], 0.0-1.0`: How long to wait after attack button is released to animation cancel and sprint anyway.
+
+### Movement
+
 * `HoldSprintToWalk: [true]/false`: Holding down sprint disable auto-sprinting, forcing the character to walk.
 * `SprintInAnyDirection: true/[false]`: Allows you to sprint in any direction.
-* `DisableSprintingCrosshair: [true]/false`: Disables the useless special sprinting chevron crosshair.
-* `DisableSpeedlines: true/[false]`: Disables the speedlines effect shown when sprinting.
+
+### Visual
+
+* `CustomFOV: [60], 1-359`: Sets a custom (vertical) FOV. 60V is roughly 90H.
 * `DisableFOVChange: true/[false]`: Disables the FOV change when you sprint.  
 * `SprintFOVMultiplier: [1.3] 0.5-2.0`: Sets the Sprinting FOV multiplier, if not disable with the above setting.
-* `CustomFOV: [60], 1-359`: Sets a custom (vertical) FOV. 60V is roughly 90H.
-* `AnimationCancelDelay: [0.2], 0.0-1.0`: How long to wait after attack button is released to animation cancel and sprint anyway.
+* `DisableSprintingCrosshair: [true]/false`: Disables the useless special sprinting chevron crosshair.
+* `DisableSpeedlines: true/[false]`: Disables the speedlines effect shown when sprinting.
+
+### Console commands
+
 * Console Command: `rt_help` will list all possible console commands.
 * Console Command: `rt_enabled` can be used to disable/enable most of the sprinting functionality.
 * Console Command: `rt_fov` changes CustomFOV.
@@ -42,7 +53,7 @@ The special (useless) sprinting crosshair is disabled, and holding sprint now ma
 * Visions of Heresy will animation cancel as you sprint between every shot.
 * Acrid M1 animation cancelling is even more broken than vanilla.
 * Arti flamethrower has a small animation glitch at the start.
-* Custom survivors aren't properly supported, but the mod now shouldn't break them either.
+* Custom survivors aren't properly supported, but the mod now shouldn't break them either - if it does, they can be disabled in the config.
 
 ## To-Do
 

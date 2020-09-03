@@ -68,7 +68,7 @@ Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExten
 
 ## Changelog
 
-`1.2.0` [2020-09-03]
+`1.1.2` [2020-09-03]
 
 * Fixed another MUL-T weapon swap bug.
 * Tweaked the default configs a little.

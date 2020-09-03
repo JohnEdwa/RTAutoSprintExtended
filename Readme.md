@@ -30,13 +30,13 @@ The special (useless) sprinting crosshair is disabled, holding sprint now makes 
 ### Movement
 
 * `HoldSprintToWalk: [true]/false`: Holding down sprint disable auto-sprinting, forcing the character to walk.
-* `SprintInAnyDirection: true/[false]`: Allows you to sprint in any direction.
+* `SprintInAnyDirection: true/[false]`: (Cheat) Allows you to sprint in any direction.
 
 ### Visual
 
 * `CustomFOV: [60], 1-359`: Sets a custom (vertical) FOV. 60V is roughly 90H.
 * `DisableFOVChange: true/[false]`: Disables the FOV change when you sprint.  
-* `SprintFOVMultiplier: [1.3] 0.5-2.0`: Sets the Sprinting FOV multiplier, if not disable with the above setting.
+* `SprintFOVMultiplier: [1.3] 0.1-2.0`: Sets the Sprinting FOV multiplier, if not disable with the above setting.
 * `DisableSprintingCrosshair: [true]/false`: Disables the useless special sprinting chevron crosshair.
 * `DisableSpeedlines: true/[false]`: Disables the speedlines effect shown when sprinting.
 
@@ -68,10 +68,10 @@ Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExten
 
 ## Changelog
 
-`1.1.2` [2020-09-03]
+`1.2.0` [2020-09-03]
 
 * Fixed another MUL-T weapon swap bug.
-* Updated the config handling a little.
+* Tweaked the default configs a little.
 * Updated the readme and moved old changelog to [CHANGELOG.md](https://github.com/JohnEdwa/RTAutoSprintExtended/blob/master/CHANGELOG.md).
 
 `1.1.1` [2020-08-23]

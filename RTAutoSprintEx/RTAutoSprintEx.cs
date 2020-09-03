@@ -55,16 +55,16 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	// Configuration
 		R2API.Utils.CommandHelper.AddToConsoleWhenReady();
 		
-		CustomSurvivors = Config.Bind<string>("Survivors", "CustomSurvivorDisable", "", new ConfigDescription("List of custom survivors names that are disabled. The name is printed to the chat and log at spawn. Example: 'CustomSurvivorDisable: = SNIPER_NAME AKALI'"));
-		ArtificerFlamethrowerToggle = Config.Bind<bool>("Survivors", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
-		AnimationCancelDelay = Config.Bind<double>("Survivors", "AnimationCancelDelay", 0.2, new ConfigDescription("Some skills can be animation cancelled by starting to sprint. This value sets how long to wait.", new AcceptableValueRange<double>(0.0, 1.0)));
-		HoldSprintToWalk = Config.Bind<bool>("Movement", "HoldSprintToWalk", true, new ConfigDescription("Holding Sprint key temporarily disables auto-sprinting, making you walk.", new AcceptableValueList<bool>(true, false)));
-		DisableSprintingCrosshair = Config.Bind<bool>("Visual", "DisableSprintingCrosshair", true, new ConfigDescription("Disables the (useless) sprinting crosshair.", new AcceptableValueList<bool>(true, false)));
-		CustomFOV = Config.Bind<int>("Visual", "FOVValue", -1, new ConfigDescription("Change FOV. Default is 60, set to -1 to disable.", new AcceptableValueRange<int>(-1, 359)));
-        DisableFOVChange = Config.Bind<bool>("Visual", "DisableFOVChange", false, new ConfigDescription("Disables FOV change when sprinting", new AcceptableValueList<bool>(true, false)));
-		SprintFOVMultiplier = Config.Bind<double>("Visual", "SprintFOVMultiplier", -1, new ConfigDescription("Sets a custom sprinting FOV multiplier. Default is 1.3, -1 to disable.", new AcceptableValueRange<double>(-1, 3)));
-		DisableSpeedlines = Config.Bind<bool>("Visual", "DisableSpeedlines", false, new ConfigDescription("Disables speedlines while sprinting", new AcceptableValueList<bool>(true, false)));
-		SprintInAnyDirection = Config.Bind<bool>("Cheat", "SprintInAnyDirection", false, new ConfigDescription("Cheat, Allows you to sprint in any direction.", new AcceptableValueList<bool>(true, false)));
+		CustomSurvivors = Config.Bind<string>("", "CustomSurvivorDisable", "", new ConfigDescription("List of custom survivors names that are disabled. The name is printed to the chat and log at spawn. Example: 'CustomSurvivorDisable: = SNIPER_NAME AKALI'"));
+		ArtificerFlamethrowerToggle = Config.Bind<bool>("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
+		AnimationCancelDelay = Config.Bind<double>("", "AnimationCancelDelay", 0.2, new ConfigDescription("Some skills can be animation cancelled by starting to sprint. This value sets how long to wait.", new AcceptableValueRange<double>(0.0, 1.0)));
+		HoldSprintToWalk = Config.Bind<bool>("", "HoldSprintToWalk", true, new ConfigDescription("Holding Sprint key temporarily disables auto-sprinting, making you walk.", new AcceptableValueList<bool>(true, false)));
+		DisableSprintingCrosshair = Config.Bind<bool>("", "DisableSprintingCrosshair", true, new ConfigDescription("Disables the (useless) sprinting crosshair.", new AcceptableValueList<bool>(true, false)));
+		CustomFOV = Config.Bind<int>("", "FOVValue", 70, new ConfigDescription("Change FOV. Game default is 60, set to -1 to disable change.", new AcceptableValueRange<int>(-1, 359)));
+        DisableFOVChange = Config.Bind<bool>("", "DisableFOVChange", false, new ConfigDescription("Disables FOV change when sprinting", new AcceptableValueList<bool>(true, false)));
+		SprintFOVMultiplier = Config.Bind<double>("", "SprintFOVMultiplier", 1.1, new ConfigDescription("Sets a custom sprinting FOV multiplier. Game default is 1.3, set to -1 to disable change.", new AcceptableValueRange<double>(-1, 3)));
+		DisableSpeedlines = Config.Bind<bool>("", "DisableSpeedlines", false, new ConfigDescription("Disables speedlines while sprinting", new AcceptableValueList<bool>(true, false)));
+		SprintInAnyDirection = Config.Bind<bool>("", "SprintInAnyDirection", false, new ConfigDescription("Cheat, Allows you to sprint in any direction.", new AcceptableValueList<bool>(true, false)));
 
 
 	// Artificer

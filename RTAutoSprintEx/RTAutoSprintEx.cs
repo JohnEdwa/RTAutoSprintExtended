@@ -1,6 +1,31 @@
-﻿
+﻿/*
+	internal HashSet<Type> statesWhichDisableSprint = new HashSet<Type>();
+	
+	public void RegisterSprintDisabler<T>() where T : BaseState {
+		statesWhichDisableSprint.Add(typeof(T));
+	}
+
+
+public bool ShouldSprintBeDisabledOnThisBody(CharacterBody targetBody) {
+    var currentState = targetBody.GetComponent<EntityStateMachine>()?.state;
+    if(currentState == null) return false;
+    return statesWhichDisableSprint.Contains(currentState.GetType());
+}
+
+RegisterSprintDisabler<EntityStates.Croco.BaseLeap>()
+
+ask ThinkInvisible for help.
+
+*/
+
+
+
+
+
+
 using System;
 using System.Reflection;
+using System.Collections.Generic;
 using BepInEx;
 using BepInEx.Configuration;
 using Rewired;
@@ -9,6 +34,7 @@ using R2API.Utils;
 using RoR2;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using EntityStates;
 
 namespace RTAutoSprintEx {
 [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
@@ -21,7 +47,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	public const string
 		NAME = "RTAutoSprintEx",
 		GUID = "com.johnedwa." + NAME,
-		VERSION = "1.1.2";
+		VERSION = "1.1.3";
 
 	public static ConfigEntry<string> CustomSurvivors { get; set; }
 	public static ConfigEntry<bool> HoldSprintToWalk { get; set; }
@@ -41,6 +67,20 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	private static bool RT_tempDisable;
 	private string[] RT_CustomSurvivors;
 	private bool RT_CustomSurvivorDisable;
+
+	internal HashSet<Type> statesWhichDisableSprint = new HashSet<Type>();
+
+	public void RegisterSprintDisabler<T>() where T : BaseState {
+		Debug.LogWarning("Sprint Disable registered for: " + typeof(T));
+		statesWhichDisableSprint.Add(typeof(T));
+	}
+
+	public bool ShouldSprintBeDisabledOnThisBody(CharacterBody targetBody) {
+    var currentState = targetBody.GetComponent<EntityStateMachine>()?.state;
+	Debug.LogWarning(currentState); // this is always EntityStates.GenericCharacterMain
+    if(currentState == null) return false;
+    return statesWhichDisableSprint.Contains(currentState.GetType());
+}
 
 	public void Awake() {
 
@@ -120,10 +160,14 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 
 
 	// Captain
+	/*
 		On.EntityStates.Captain.Weapon.SetupAirstrike.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
 		On.EntityStates.Captain.Weapon.SetupAirstrike.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
 		On.EntityStates.Captain.Weapon.SetupSupplyDrop.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
 		On.EntityStates.Captain.Weapon.SetupSupplyDrop.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
+	*/
+		RegisterSprintDisabler<EntityStates.Captain.Weapon.SetupAirstrike>();
+		RegisterSprintDisabler<EntityStates.Captain.Weapon.SetupSupplyDrop>();
 
 	// This could be eventually used to do all the disabling stuff without touching the skills themselves, I think.
 	
@@ -197,6 +241,10 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 									break;
 							}
 						if (knownSurvivor) {
+
+							ShouldSprintBeDisabledOnThisBody(instanceFieldBody);
+							
+
 							if (!RTAutoSprintEx.RT_isSprinting && RTAutoSprintEx.RT_num >= 0.1) {
 								RTAutoSprintEx.RT_num = 0.0;
 								RTAutoSprintEx.RT_isSprinting = skillsAllowAutoSprint;

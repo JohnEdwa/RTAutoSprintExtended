@@ -21,11 +21,12 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	public const string
 		NAME = "RTAutoSprintEx",
 		GUID = "com.johnedwa." + NAME,
-		VERSION = "1.1.2";
+		VERSION = "1.1.3";
 
 	public static ConfigEntry<string> CustomSurvivors { get; set; }
 	public static ConfigEntry<bool> HoldSprintToWalk { get; set; }
 	public static ConfigEntry<bool> SprintInAnyDirection { get; set; }
+	public static ConfigEntry<bool> ToggleAutoSprint { get; set; }
 	public static ConfigEntry<bool> ArtificerFlamethrowerToggle { get; set; }	
 	public static ConfigEntry<bool> DisableSprintingCrosshair { get; set; }
 	public static ConfigEntry<double> AnimationCancelDelay { get; set; }
@@ -37,6 +38,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	private static double RT_num;
 	private static bool RT_enabled;
 	private static bool RT_isSprinting;
+	private static bool RT_disableToggle;
 	private static bool RT_cancelWithSprint;
 	private static bool RT_tempDisable;
 	private string[] RT_CustomSurvivors;
@@ -46,6 +48,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 
 		RTAutoSprintEx.RT_num = 0.0;
 		RTAutoSprintEx.RT_enabled = true;
+		RTAutoSprintEx.RT_disableToggle = false;
 		RTAutoSprintEx.RT_isSprinting = false;
 		RTAutoSprintEx.RT_cancelWithSprint = false;
 		RTAutoSprintEx.RT_tempDisable = false;
@@ -58,7 +61,8 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		CustomSurvivors = Config.Bind<string>("", "CustomSurvivorDisable", "", new ConfigDescription("List of custom survivors names that are disabled. The name is printed to the chat and log at spawn. Example: 'CustomSurvivorDisable: = SNIPER_NAME AKALI'"));
 		ArtificerFlamethrowerToggle = Config.Bind<bool>("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
 		AnimationCancelDelay = Config.Bind<double>("", "AnimationCancelDelay", 0.2, new ConfigDescription("Some skills can be animation cancelled by starting to sprint. This value sets how long to wait.", new AcceptableValueRange<double>(0.0, 1.0)));
-		HoldSprintToWalk = Config.Bind<bool>("", "HoldSprintToWalk", true, new ConfigDescription("Holding Sprint key temporarily disables auto-sprinting, making you walk.", new AcceptableValueList<bool>(true, false)));
+		HoldSprintToWalk = Config.Bind<bool>("", "HoldSprintToWalk", true, new ConfigDescription("Holding the Sprint key temporarily disables auto-sprinting, making you walk. Overrided by ToggleAutoSprint.", new AcceptableValueList<bool>(true, false)));
+		ToggleAutoSprint = Config.Bind<bool>("", "ToggleAutoSprint", false, new ConfigDescription("Pressing the Sprint key toggles between walking and auto-sprinting. Overrides HoldSprintToWalk", new AcceptableValueList<bool>(true, false)));
 		DisableSprintingCrosshair = Config.Bind<bool>("", "DisableSprintingCrosshair", true, new ConfigDescription("Disables the (useless) sprinting crosshair.", new AcceptableValueList<bool>(true, false)));
 		CustomFOV = Config.Bind<int>("", "FOVValue", 70, new ConfigDescription("Change FOV. Game default is 60, set to -1 to disable change.", new AcceptableValueRange<int>(-1, 359)));
         DisableFOVChange = Config.Bind<bool>("", "DisableFOVChange", false, new ConfigDescription("Disables FOV change when sprinting", new AcceptableValueList<bool>(true, false)));
@@ -136,8 +140,6 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		On.RoR2.PlayerCharacterMasterController.FixedUpdate += delegate(On.RoR2.PlayerCharacterMasterController.orig_FixedUpdate orig, RoR2.PlayerCharacterMasterController self) {
 
 			orig.Invoke(self);
-
-			//RTAutoSprintEx.RT_isSprinting = false;
 			bool skillsAllowAutoSprint = false;
 			bool knownSurvivor = true;
 			RoR2.NetworkUser networkUser = self.networkUser;
@@ -222,17 +224,23 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 									RTAutoSprintEx.RT_isSprinting = false;
 								}
 							} 
+
 							// Walking logic.
 							if (inputPlayer.GetButton("Sprint")) {
 								RTAutoSprintEx.RT_num = 1.0; 
-								if (HoldSprintToWalk.Value) RTAutoSprintEx.RT_isSprinting = false;
+								if (HoldSprintToWalk.Value && !ToggleAutoSprint.Value) RTAutoSprintEx.RT_isSprinting = false;
 								if (RT_cancelWithSprint) RTAutoSprintEx.RT_isSprinting = true;
+							}
+
+							if (ToggleAutoSprint.Value && inputPlayer.GetButtonDown("Sprint")){
+								RTAutoSprintEx.RT_disableToggle = !RTAutoSprintEx.RT_disableToggle;
 							}
 						}
 					}
 				}
 
 				if (instanceFieldBodyInputs && RTAutoSprintEx.RT_enabled && knownSurvivor) {
+					if (RTAutoSprintEx.RT_disableToggle) RTAutoSprintEx.RT_isSprinting = false;
 					instanceFieldBodyInputs.sprint.PushState(RTAutoSprintEx.RT_isSprinting);
 				}
 			}

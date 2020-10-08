@@ -30,7 +30,9 @@ The special (useless) sprinting crosshair is disabled, holding sprint now makes 
 ### Movement
 
 * `HoldSprintToWalk: [true]/false`: Holding down sprint disable auto-sprinting, forcing the character to walk.
+* `ToggleAutoSprint: true/[false]`: Pressing the Sprint key toggles between walking and auto-sprinting. Overrides HoldSprintToWalk.
 * `SprintInAnyDirection: true/[false]`: (Cheat) Allows you to sprint in any direction.
+
 
 ### Visual
 
@@ -68,6 +70,10 @@ Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExten
 
 ## Changelog
 
+`1.1.3` [2020-10-08]
+
+* Added `ToggleAutoSprint` option, with it enabled pressing Sprint will toggle between walking and auto-sprinting.
+
 `1.1.2` [2020-09-03]
 
 * Fixed another MUL-T weapon swap bug.
@@ -77,7 +83,3 @@ Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExten
 `1.1.1` [2020-08-23]
 
 * Fixed an issue causing MUL-T sprinting to break if you swapped from the nailgun to another weapon while firing.
-
-`1.1.0` [2020-08-22]
-
-* Slightly better custom survivor support, the config file can be used to disable AutoSprinting for survivors that break.

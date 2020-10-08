@@ -1,5 +1,9 @@
 # Changelog
 
+`1.1.3` [2020-10-08]
+
+* Added `ToggleAutoSprint` option, with it enabled pressing Sprint will toggle between walking and auto-sprinting.
+
 `1.1.2` [2020-09-03]
 
 * Fixed another MUL-T weapon swap bug.

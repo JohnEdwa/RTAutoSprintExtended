@@ -6,40 +6,46 @@
 
   <ItemGroup>
       <Reference Include="BepInEx">
-      <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\r2modman\BepInEx\core\BepInEx.dll</HintPath>
+      <HintPath>..\\..\\Libs\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="MMHOOK_Assembly-CSharp">
-      <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\r2modman\BepInEx\plugins\tristanmcpherson-R2API\R2API\MMHOOK_Assembly-CSharp.dll</HintPath>
+      <HintPath>..\\..\\Libs\MMHOOK_Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="EnigmaticThunder">
+      <HintPath>..\\..\\Libs\EnigmaticThunder.dll</HintPath>
+    </Reference>   
+
     <Reference Include="R2API">
-      <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\r2modman\BepInEx\plugins\tristanmcpherson-R2API\R2API\R2API.dll</HintPath>
-    </Reference>
+      <HintPath>..\\..\\Libs\R2API.dll</HintPath>
+    </Reference>  
+
+
     <Reference Include="Mono.Cecil">
-      <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\r2modman\BepInEx\core\Mono.Cecil.dll</HintPath>
+      <HintPath>..\\..\\Libs\Mono.Cecil.dll</HintPath>
     </Reference>
     <Reference Include="MonoMod.Utils">
-      <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\r2modman\BepInEx\core\MonoMod.Utils.dll</HintPath>
+      <HintPath>..\\..\\Libs\MonoMod.Utils.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\\..\\Libs\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>..\\..\\Libs\UnityEngine.dll</HintPath>
     </Reference>
         <Reference Include="UnityEngine">
-      <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>..\\..\\Libs\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.Networking">
-      <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\UnityEngine.Networking.dll</HintPath>
+      <HintPath>..\\..\\Libs\UnityEngine.Networking.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>..\\..\\Libs\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ParticleSystemModule">
-      <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
+      <HintPath>..\\..\\Libs\UnityEngine.ParticleSystemModule.dll</HintPath>
     </Reference>
     <Reference Include="Rewired_Core">
-      <HintPath>F:\Program Files\Steam2\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\Rewired_Core.dll</HintPath>
+      <HintPath>..\\..\\Libs\Rewired_Core.dll</HintPath>
     </Reference>
 
   </ItemGroup>

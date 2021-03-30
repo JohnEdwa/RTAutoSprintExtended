@@ -1,27 +1,24 @@
-﻿
-using System;
+﻿using System;
 using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
 using Rewired;
 using UnityEngine;
-using R2API.Utils;
+using EnigmaticThunder.Util;
 using RoR2;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 
 namespace RTAutoSprintEx {
-[NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-[R2APISubmoduleDependency(nameof(CommandHelper))]
-[BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
+//[NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
+//[BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
 [BepInPlugin(GUID, NAME, VERSION)]
-
 
 public class RTAutoSprintEx : BaseUnityPlugin {
 	public const string
 		NAME = "RTAutoSprintEx",
 		GUID = "com.johnedwa." + NAME,
-		VERSION = "1.1.3";
+		VERSION = "1.2.0";
 
 	public static ConfigEntry<string> CustomSurvivors { get; set; }
 	public static ConfigEntry<bool> HoldSprintToWalk { get; set; }
@@ -41,6 +38,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	private static bool RT_disableToggle;
 	private static bool RT_cancelWithSprint;
 	private static bool RT_tempDisable;
+	private static bool RT_toolDualWield;
 	private string[] RT_CustomSurvivors;
 	private bool RT_CustomSurvivorDisable;
 
@@ -51,12 +49,13 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		RTAutoSprintEx.RT_disableToggle = false;
 		RTAutoSprintEx.RT_isSprinting = false;
 		RTAutoSprintEx.RT_cancelWithSprint = false;
+		RTAutoSprintEx.RT_toolDualWield = false;
 		RTAutoSprintEx.RT_tempDisable = false;
 		RT_CustomSurvivorDisable = false;
 		bool firstrun = true;
 
 	// Configuration
-		R2API.Utils.CommandHelper.AddToConsoleWhenReady();
+		EnigmaticThunder.Modules.CommandHelper.AddToConsoleWhenReady();
 		
 		CustomSurvivors = Config.Bind<string>("", "CustomSurvivorDisable", "", new ConfigDescription("List of custom survivors names that are disabled. The name is printed to the chat and log at spawn. Example: 'CustomSurvivorDisable: = SNIPER_NAME AKALI'"));
 		ArtificerFlamethrowerToggle = Config.Bind<bool>("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
@@ -70,6 +69,14 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		DisableSpeedlines = Config.Bind<bool>("", "DisableSpeedlines", false, new ConfigDescription("Disables speedlines while sprinting", new AcceptableValueList<bool>(true, false)));
 		SprintInAnyDirection = Config.Bind<bool>("", "SprintInAnyDirection", false, new ConfigDescription("Cheat, Allows you to sprint in any direction.", new AcceptableValueList<bool>(true, false)));
 
+	// Bandit
+
+		//Shotgun
+		On.EntityStates.Bandit2.Weapon.Bandit2FirePrimaryBase.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
+		//Revolver shot
+		On.EntityStates.Bandit2.Weapon.BasePrepSidearmRevolverState.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true;};
+		On.EntityStates.Bandit2.Weapon.BaseSidearmState.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false;};
+		On.EntityStates.Bandit2.Weapon.BaseFireSidearmRevolverState.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false;};
 
 	// Artificer
 		//Flamethrower
@@ -92,18 +99,18 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 
 	// MUL-T
 		//Nailgun
-		On.EntityStates.FireNailgun.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = true; };
-		On.EntityStates.FireNailgun.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = false; };
-
+		On.EntityStates.Toolbot.FireNailgun.OnEnter += (orig, self) => { orig(self); if (!RT_toolDualWield) RTAutoSprintEx.RT_tempDisable = true; };
+		On.EntityStates.Toolbot.FireNailgun.OnExit += (orig, self) => { orig(self); if (!RT_toolDualWield) RTAutoSprintEx.RT_tempDisable = false; };
 		// Scrap Launcher
-		On.EntityStates.Toolbot.FireGrenadeLauncher.PlayAnimation += (orig, self, duration) => { orig(self, duration); RTAutoSprintEx.RT_num = -duration; RTAutoSprintEx.RT_tempDisable = false;};
-		
+		On.EntityStates.Toolbot.FireGrenadeLauncher.PlayAnimation += (orig, self, duration) => { orig(self, duration); RTAutoSprintEx.RT_num = -duration;};
 		// Stun Grenade (M2)
 		On.EntityStates.Toolbot.AimGrenade.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
 		On.EntityStates.Toolbot.RecoverAimStunDrone.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
-
 		// Workaround for the stance swap issue
 		On.EntityStates.Toolbot.StartToolbotStanceSwap.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
+		// UNLIMITED POWAH
+		On.EntityStates.Toolbot.ToolbotDualWieldStart.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = true; RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true;};
+		On.EntityStates.Toolbot.ToolbotDualWieldEnd.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = false; RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false;};		
 
 	// REX workaround logic
 		On.EntityStates.Treebot.Weapon.FireSyringe.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
@@ -122,7 +129,6 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	// Loader M1 Delay
 		On.EntityStates.Loader.SwingComboFist.PlayAnimation += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 
-
 	// Captain
 		On.EntityStates.Captain.Weapon.SetupAirstrike.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
 		On.EntityStates.Captain.Weapon.SetupAirstrike.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
@@ -130,10 +136,8 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		On.EntityStates.Captain.Weapon.SetupSupplyDrop.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
 
 	// This could be eventually used to do all the disabling stuff without touching the skills themselves, I think.
+ 		//On.RoR2.CharacterBody.OnSkillActivated += (orig, self, GenericSkill) => {  orig(self, GenericSkill); Debug.Log( GenericSkill.skillDef.skillName + " | Index: ");};
 	
- 		//On.RoR2.CharacterBody.OnSkillActivated += (orig, self, GenericSkill) => { orig(self, GenericSkill); RoR2.Chat.AddMessage( GenericSkill.skillDef.skillName + " | Index: ");};
-	
-
 	On.RoR2.PlayerCharacterMasterController.OnEnable += (orig, self) => { orig(self); firstrun = true;};
 
 	// Sprinting logic
@@ -162,6 +166,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 								case "TREEBOT_BODY_NAME":
 								case "TOOLBOT_BODY_NAME":
 								case "CAPTAIN_BODY_NAME":
+								case "BANDIT2_BODY_NAME":
 									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
 									break;								
 								case "MAGE_BODY_NAME":
@@ -170,7 +175,6 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
 									break;
 								default:
-
 									if (firstrun) {
 										firstrun = false;
 										RT_CustomSurvivorDisable = false;
@@ -178,8 +182,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 										RT_CustomSurvivors = CustomSurvivors.Value.Split(delimiterChars);
 
 										if (RT_CustomSurvivors != null) {
-											foreach (var survivor in RT_CustomSurvivors)
-											{
+											foreach (var survivor in RT_CustomSurvivors)  {
 												if (instanceFieldBody.baseNameToken == survivor) {
 													RoR2.Chat.AddMessage("Custom Survivor Disable for '" + survivor + "' was found and RTAutosprint was disabled.");
 													RT_CustomSurvivorDisable = true;
@@ -187,10 +190,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 												}
 											}
 										}
-
-										if (!RT_CustomSurvivorDisable) {
-											RoR2.Chat.AddMessage("Custom Survivor'" + instanceFieldBody.baseNameToken + "' detected."); 
-										}
+										if (!RT_CustomSurvivorDisable) { RoR2.Chat.AddMessage("Custom Survivor'" + instanceFieldBody.baseNameToken + "' detected."); }
 									}
 
 									if (RT_CustomSurvivorDisable) {knownSurvivor = false;};

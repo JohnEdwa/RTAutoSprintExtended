@@ -1,4 +1,4 @@
-# RT AutoSprint Extended | Game ver. 1.0.1.1
+# RT AutoSprint Extended | Game ver. 1.1.0.1
 
 *Fixed & Extended by JohnEdwa, Original by Relocity and Thrawnarch.*
 
@@ -56,6 +56,7 @@ The special (useless) sprinting crosshair is disabled, holding sprint now makes 
 * Acrid M1 animation cancelling is even more broken than vanilla.
 * Arti flamethrower has a small animation glitch at the start.
 * Custom survivors aren't properly supported, but the mod now shouldn't break them either - if it does, they can be disabled in the config.
+* Bandits revolver has a winddown animation which blocks autosprinting. Shooting or tapping sprint will cancel this.
 
 ## To-Do
 
@@ -69,6 +70,11 @@ The special (useless) sprinting crosshair is disabled, holding sprint now makes 
 Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExtended) or find me on the RoR2 modding discord (JohnEdwa#7903).
 
 ## Changelog
+
+`1.2.0` [2021-03-30]
+
+* Updated for Anniversary, switched from R2API to EnigmaticThunder.
+* [KNOWN ISSUE] Bandits revolver has a winddown animation which blocks autosprinting. Shooting or tapping sprint will cancel this.
 
 `1.1.3` [2020-10-08]
 

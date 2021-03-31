@@ -11,7 +11,7 @@ using MonoMod.Cil;
 
 namespace RTAutoSprintEx {
 //[NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-//[BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
+[BepInDependency(EnigmaticThunder.EnigmaticThunder.guid, BepInDependency.DependencyFlags.HardDependency)]
 [BepInPlugin(GUID, NAME, VERSION)]
 
 public class RTAutoSprintEx : BaseUnityPlugin {
@@ -70,7 +70,6 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		SprintInAnyDirection = Config.Bind<bool>("", "SprintInAnyDirection", false, new ConfigDescription("Cheat, Allows you to sprint in any direction.", new AcceptableValueList<bool>(true, false)));
 
 	// Bandit
-
 		//Shotgun
 		On.EntityStates.Bandit2.Weapon.Bandit2FirePrimaryBase.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 		//Revolver shot
@@ -109,9 +108,11 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		// Workaround for the stance swap issue
 		On.EntityStates.Toolbot.StartToolbotStanceSwap.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
 		// UNLIMITED POWAH
+		On.EntityStates.Toolbot.ToolbotDualWieldBase.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = true; RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true;};
 		On.EntityStates.Toolbot.ToolbotDualWieldStart.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = true; RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true;};
+		On.EntityStates.Toolbot.ToolbotDualWield.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = true; RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true;};
 		On.EntityStates.Toolbot.ToolbotDualWieldEnd.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = false; RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false;};		
-
+		
 	// REX workaround logic
 		On.EntityStates.Treebot.Weapon.FireSyringe.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
 

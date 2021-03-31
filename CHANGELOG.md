@@ -1,5 +1,10 @@
 # Changelog
 
+`1.2.0` [2021-03-30]
+
+* Updated for Anniversary, switched from R2API to EnigmaticThunder.
+* [KNOWN ISSUE] Bandits revolver has a winddown animation which blocks autosprinting. Shooting or tapping sprint will cancel this.
+
 `1.1.3` [2020-10-08]
 
 * Added `ToggleAutoSprint` option, with it enabled pressing Sprint will toggle between walking and auto-sprinting.

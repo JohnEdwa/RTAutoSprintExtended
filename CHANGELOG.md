@@ -1,5 +1,9 @@
 # Changelog
 
+`1.2.1` [2021-04-03]
+
+* MUL-T dualwield should now work properly.
+
 `1.2.0` [2021-03-30]
 
 * Updated for Anniversary, switched from R2API to EnigmaticThunder.

@@ -9,6 +9,7 @@ using RoR2;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 
+
 namespace RTAutoSprintEx {
 //[NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
 [BepInDependency(EnigmaticThunder.EnigmaticThunder.guid, BepInDependency.DependencyFlags.HardDependency)]
@@ -18,7 +19,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	public const string
 		NAME = "RTAutoSprintEx",
 		GUID = "com.johnedwa." + NAME,
-		VERSION = "1.2.0";
+		VERSION = "1.2.1";
 
 	public static ConfigEntry<string> CustomSurvivors { get; set; }
 	public static ConfigEntry<bool> HoldSprintToWalk { get; set; }
@@ -98,7 +99,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 
 	// MUL-T
 		//Nailgun
-		On.EntityStates.Toolbot.FireNailgun.OnEnter += (orig, self) => { orig(self); if (!RT_toolDualWield) RTAutoSprintEx.RT_tempDisable = true; };
+		On.EntityStates.Toolbot.FireNailgun.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = true; };
 		On.EntityStates.Toolbot.FireNailgun.OnExit += (orig, self) => { orig(self); if (!RT_toolDualWield) RTAutoSprintEx.RT_tempDisable = false; };
 		// Scrap Launcher
 		On.EntityStates.Toolbot.FireGrenadeLauncher.PlayAnimation += (orig, self, duration) => { orig(self, duration); RTAutoSprintEx.RT_num = -duration;};
@@ -108,10 +109,12 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		// Workaround for the stance swap issue
 		On.EntityStates.Toolbot.StartToolbotStanceSwap.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
 		// UNLIMITED POWAH
-		On.EntityStates.Toolbot.ToolbotDualWieldBase.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = true; RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true;};
-		On.EntityStates.Toolbot.ToolbotDualWieldStart.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = true; RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true;};
-		On.EntityStates.Toolbot.ToolbotDualWield.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = true; RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true;};
-		On.EntityStates.Toolbot.ToolbotDualWieldEnd.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = false; RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false;};		
+		On.EntityStates.Toolbot.ToolbotDualWield.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = true; RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
+		On.EntityStates.Toolbot.ToolbotDualWieldBase.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = true;  RTAutoSprintEx.RT_tempDisable = true; };
+		On.EntityStates.Toolbot.ToolbotDualWieldStart.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = true;  RTAutoSprintEx.RT_tempDisable = true; };
+
+		On.EntityStates.Toolbot.ToolbotDualWield.OnExit += (orig, self) => { orig(self); RT_toolDualWield = false; RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; RTAutoSprintEx.RT_num = -0.05;};
+		On.EntityStates.Toolbot.ToolbotDualWieldEnd.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = false;  RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; RTAutoSprintEx.RT_num = -0.05;};		
 		
 	// REX workaround logic
 		On.EntityStates.Treebot.Weapon.FireSyringe.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
@@ -165,10 +168,12 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 									break;
 								case "ENGI_BODY_NAME":	
 								case "TREEBOT_BODY_NAME":
-								case "TOOLBOT_BODY_NAME":
 								case "CAPTAIN_BODY_NAME":
 								case "BANDIT2_BODY_NAME":
 									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
+									break;
+								case "TOOLBOT_BODY_NAME":
+									if (!RT_toolDualWield) skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
 									break;								
 								case "MAGE_BODY_NAME":
 									// If TOGGLE, just follow tempDisable, if HOLD disable when button released

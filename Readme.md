@@ -71,6 +71,10 @@ Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExten
 
 ## Changelog
 
+`1.2.1` [2021-04-03]
+
+* MUL-T dualwield should now work properly.
+
 `1.2.0` [2021-03-30]
 
 * Updated for Anniversary, switched from R2API to EnigmaticThunder.
@@ -79,13 +83,3 @@ Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExten
 `1.1.3` [2020-10-08]
 
 * Added `ToggleAutoSprint` option, with it enabled pressing Sprint will toggle between walking and auto-sprinting.
-
-`1.1.2` [2020-09-03]
-
-* Fixed another MUL-T weapon swap bug.
-* Tweaked the default configs a little.
-* Updated the readme and moved old changelog to [CHANGELOG.md](https://github.com/JohnEdwa/RTAutoSprintExtended/blob/master/CHANGELOG.md).
-
-`1.1.1` [2020-08-23]
-
-* Fixed an issue causing MUL-T sprinting to break if you swapped from the nailgun to another weapon while firing.

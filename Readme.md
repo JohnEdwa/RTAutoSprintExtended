@@ -71,6 +71,10 @@ Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExten
 
 ## Changelog
 
+`1.3.0` [2021-04-04]
+
+* Back to R2API. Otherwise identical to 1.2.1
+
 `1.2.1` [2021-04-03]
 
 * MUL-T dualwield should now work properly.

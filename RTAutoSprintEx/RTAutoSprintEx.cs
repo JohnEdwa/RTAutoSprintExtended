@@ -4,22 +4,23 @@ using BepInEx;
 using BepInEx.Configuration;
 using Rewired;
 using UnityEngine;
-using EnigmaticThunder.Util;
 using RoR2;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-
+using R2API.Utils;
 
 namespace RTAutoSprintEx {
-//[NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-[BepInDependency(EnigmaticThunder.EnigmaticThunder.guid, BepInDependency.DependencyFlags.HardDependency)]
+
+[BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
+[NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
+
 [BepInPlugin(GUID, NAME, VERSION)]
 
 public class RTAutoSprintEx : BaseUnityPlugin {
 	public const string
 		NAME = "RTAutoSprintEx",
 		GUID = "com.johnedwa." + NAME,
-		VERSION = "1.2.1";
+		VERSION = "1.3.0";
 
 	public static ConfigEntry<string> CustomSurvivors { get; set; }
 	public static ConfigEntry<bool> HoldSprintToWalk { get; set; }

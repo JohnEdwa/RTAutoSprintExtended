@@ -57,7 +57,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		bool firstrun = true;
 
 	// Configuration
-		EnigmaticThunder.Modules.CommandHelper.AddToConsoleWhenReady();
+		R2API.Utils.CommandHelper.AddToConsoleWhenReady();
 		
 		CustomSurvivors = Config.Bind<string>("", "CustomSurvivorDisable", "", new ConfigDescription("List of custom survivors names that are disabled. The name is printed to the chat and log at spawn. Example: 'CustomSurvivorDisable: = SNIPER_NAME AKALI'"));
 		ArtificerFlamethrowerToggle = Config.Bind<bool>("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
@@ -151,9 +151,9 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 			orig.Invoke(self);
 			bool skillsAllowAutoSprint = false;
 			bool knownSurvivor = true;
-			RoR2.NetworkUser networkUser = self.networkUser;
 			RoR2.InputBankTest instanceFieldBodyInputs = self.GetInstanceField<RoR2.InputBankTest>("bodyInputs");
 			if (instanceFieldBodyInputs) {
+				RoR2.NetworkUser networkUser = self.networkUser;
 				if (networkUser && networkUser.localUser != null && !networkUser.localUser.isUIFocused) {
 					RoR2.CharacterBody instanceFieldBody = self.GetInstanceField<RoR2.CharacterBody>("body");
 					if (instanceFieldBody && RTAutoSprintEx.RT_enabled) {
@@ -202,13 +202,12 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 
 									if (RT_CustomSurvivorDisable) {knownSurvivor = false;};
 									if (knownSurvivor) skillsAllowAutoSprint = true;
-									
 									break;
 							}
 						if (knownSurvivor) {
 							if (!RTAutoSprintEx.RT_isSprinting && RTAutoSprintEx.RT_num >= 0.1) {
-								RTAutoSprintEx.RT_num = 0.0;
 								RTAutoSprintEx.RT_isSprinting = skillsAllowAutoSprint;
+								RTAutoSprintEx.RT_num = 0.0;
 							}
 							// Animation cancelling after stopping attack
 							if (RTAutoSprintEx.RT_num < -(AnimationCancelDelay.Value)
@@ -219,7 +218,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 								{ RTAutoSprintEx.RT_num = -(AnimationCancelDelay.Value); }
 							if (!RTAutoSprintEx.RT_isSprinting) RTAutoSprintEx.RT_num += (double)Time.deltaTime;
 
-						// Disable sprinting if the movement angle is too large
+							// Disable sprinting if the movement angle is too large
 							if (RTAutoSprintEx.RT_isSprinting) {
 								Vector3 aimDirection = instanceFieldBodyInputs.aimDirection;
 								aimDirection.y = 0f;
@@ -256,7 +255,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	// Custom FOV
         On.RoR2.CameraRigController.Update += (orig, self) => {
             orig(self);
-			if (CustomFOV.Value > 0 && CustomFOV.Value != self.baseFov) self.baseFov = CustomFOV.Value;
+			if (CustomFOV.Value > 0 && CustomFOV.Value != self.baseFov && CustomFOV.Value < 360) self.baseFov = CustomFOV.Value;
         };
 
 	// Sprinting Crosshair
@@ -324,7 +323,6 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 
 
 	// Console Commands
-
 	[RoR2.ConCommand(commandName = "rt_help", flags = ConVarFlags.ExecuteOnServer, helpText = "List all RTAutoSprintEx console commands.")]
 	private static void cc_rt_help(ConCommandArgs args) {
 		Debug.Log("'rt_enabled <bool>'. Default: true. Enables/Disables the sprinting part of the mod.");

@@ -1,5 +1,9 @@
 # Changelog
 
+`1.3.1` [2021-04-06]
+
+* Back to R2API. Otherwise identical to 1.2.1
+
 `1.2.1` [2021-04-03]
 
 * MUL-T dualwield should now work properly.

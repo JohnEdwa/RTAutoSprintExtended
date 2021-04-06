@@ -13,6 +13,7 @@ namespace RTAutoSprintEx {
 
 [BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
 [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
+[R2APISubmoduleDependency(nameof(CommandHelper))]
 
 [BepInPlugin(GUID, NAME, VERSION)]
 
@@ -20,7 +21,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	public const string
 		NAME = "RTAutoSprintEx",
 		GUID = "com.johnedwa." + NAME,
-		VERSION = "1.3.0";
+		VERSION = "1.3.2";
 
 	public static ConfigEntry<string> CustomSurvivors { get; set; }
 	public static ConfigEntry<bool> HoldSprintToWalk { get; set; }

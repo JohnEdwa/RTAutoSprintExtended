@@ -73,6 +73,10 @@ Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExten
 
 Full changelog is in [CHANGELOG.MD](https://github.com/JohnEdwa/RTAutoSprintExtended/blob/master/CHANGELOG.md).
 
+`1.3.2` [2021-04-06]
+
+* Forgot to add command helper back.
+
 `1.3.0` [2021-04-06]
 
 * Back to R2API. Otherwise identical to 1.2.1

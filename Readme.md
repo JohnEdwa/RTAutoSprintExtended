@@ -45,6 +45,7 @@ The special (useless) sprinting crosshair is disabled, holding sprint now makes 
 ### Console commands
 
 * Console Command: `rt_help` will list all possible console commands.
+* Console Command: `rt_debug` lists all seen EntityStates, useful for figuring out what specific skill is causing issues.
 * Console Command: `rt_enabled` can be used to disable/enable most of the sprinting functionality.
 * Console Command: `rt_fov` changes CustomFOV.
 * Console Command: `rt_artificer_flamethrower_toggle` sets the flamethrower mode.
@@ -52,15 +53,10 @@ The special (useless) sprinting crosshair is disabled, holding sprint now makes 
 
 ## Known Issues
 
-* Visions of Heresy will animation cancel as you sprint between every shot.
-* Acrid M1 animation cancelling is even more broken than vanilla.
-* Arti flamethrower has a small animation glitch at the start.
-* Custom survivors aren't properly supported, but the mod now shouldn't break them either - if it does, they can be disabled in the config.
-* Bandits revolver has a winddown animation which blocks autosprinting. Shooting or tapping sprint will cancel this.
+* Still no support for custom survivors.
 
 ## To-Do
 
-* Rewrite the mod to work from detecting what skill is being used, instead of editing each skill.
 * Make all config console commands update at runtime.
 * Figure a ~~better~~ way to handle custom survivors, specifically a skill-by-skill disable workaround.
 * Add an option to disable REX burrowing under the ground on sprint.
@@ -70,6 +66,10 @@ The special (useless) sprinting crosshair is disabled, holding sprint now makes 
 Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExtended) or find me on the RoR2 modding discord (JohnEdwa#7903).
 
 ## Changelog
+
+`2.0.0`  [2021-04-10]
+
+* Pretty much a complete rewrite of the mod. Should work better now. I hope.
 
 `1.2.0` [2021-03-30]
 

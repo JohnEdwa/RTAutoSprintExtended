@@ -6,88 +6,7 @@ THINGS TO DO:
  Console Commands
  Rewrite Configuration
  Artificer Hold To Cast
-*/
-
-/*
-
-internal HashSet<Type> statesWhichDisableSprint = new HashSet<Type>();
-public void RegisterSprintDisabler<T>() where T : BaseState {
-    statesWhichDisableSprint.Add(typeof(T));
-}
-
-public bool ShouldSprintBeDisabledOnThisBody(CharacterBody targetBody) {
-    var currentState = targetBody.GetComponent<EntityStateMachine>()?.state;
-    if(currentState == null) return false;
-    return statesWhichDisableSprint.Contains(currentState.GetType());
-}
-
-*/
-
-
-/*
-
-Skills that cancel on sprint:
-	EntityStates.Mage.Weapon.Flamethrower.OnEnter
-	EntityStates.Mage.Weapon.PrepWall.OnEnter
-
-	EntityStates.Bandit2.Weapon.BasePrepSidearmRevolverState.OnEnter
-
-	EntityStates.Engi.EngiMissilePainter.OnEnte
-	
-	EntityStates.Toolbot.FireNailgun.OnEnter
-	EntityStates.Toolbot.AimGrenade.OnEnter
-	*EntityStates.Toolbot.ToolbotDualWield.OnEnter
-	*EntityStates.Toolbot.ToolbotDualWieldBase.OnEnter
-	*EntityStates.Toolbot.ToolbotDualWieldStart.OnEnter
-
-	EntityStates.Treebot.Weapon.AimMortar.OnEnter
-	EntityStates.Treebot.Weapon.AimMortar2.OnEnter
-
-	EntityStates.Captain.Weapon.SetupAirstrike.OnEnter
-	EntityStates.Captain.Weapon.SetupSupplyDrop.OnEnter
-
-Skills that need animation delay:
-	EntityStates.Mage.Weapon.FireFireBolt.OnEnter
-	EntityStates.Mage.Weapon.FireLaserbolt.OnEnter
-
-	EntityStates.Bandit2.Weapon.Bandit2FirePrimaryBase.OnEnter
-
-	EntityStates.Engi.EngiWeapon.FireMines.OnEnter
-	EntityStates.Engi.EngiWeapon.FireSeekerGrenades.OnEnter
-
-	EntityStates.Toolbot.FireGrenadeLauncher.PlayAnimation
-	EntityStates.Treebot.Weapon.FireSyringe.OnEnter
-
-	EntityStates.Croco.Slash.PlayAnimation
-
-	EntityStates.Commando.CommandoWeapon.FirePistol2.OnEnter
-
-	EntityStates.Loader.SwingComboFist.PlayAnimation
-
-On.RoR2.PlayerCharacterMasterController.FixedUpdate -> self.GetInstanceField<RoR2.CharacterBody>("body").GetComponent<EntityStateMachine>().state.ToString()
-	// EntityStates.Toolbot.ToolbotDualWield, EntityStates.Toolbot.ToolbotDualStart
-
-
-	// EntityStates.Toolbot.ToolbotDash
-	// EntityStates.Toolbot.ToolbotDashImpact
-	// EntityStates.SpawnTeleporterState
-	// EntityStates.GenericCharacterPod
-	// EntityStates.GenericCharacterVehicleSeated
-	// EntityStates.GenericCharacterMain
-	// EntityStates.Mage.MageCharacterMain
-
-
-EntityState chains:
-
-	ToolbotDualWield		: ToolbotDualWieldBase : GenericCharacterMain : BaseCharacterMain : BaseState : EntityState
-	ToolbotDualWieldStart	: ToolbotDualWieldBase
-
-	ToolbotDash : 															BaseCharacterMain
-	ToolbotDashImpact : 																		BaseState
-
-	FireNailgun : BaseNailgunState : BaseToolbotPrimarySkillState : BaseSkillState : 			BaseState
-	AimGrenade : AimThrowableBase : 								BaseSkillState
-
+ Sprint Toggle
 */
 
 #define DEBUG
@@ -120,7 +39,9 @@ namespace RTAutoSprintEx {
 
         private static bool RT_enabled;
 
+#if DEBUG
         internal HashSet<string> knownEntityStates = new HashSet<string>();
+#endif
         internal HashSet<Type> statesWhichDisableSprint = new HashSet<Type>();
         internal HashSet<Type> statesWhichDelaySprint = new HashSet<Type>();
 
@@ -142,19 +63,20 @@ namespace RTAutoSprintEx {
             double RT_num = 0.0;
             bool RT_isSprinting = false;
             bool RT_animationCancel = false;
+            bool RT_walkToggle = false;
 
             R2API.Utils.CommandHelper.AddToConsoleWhenReady();
             //CustomSurvivors = Config.Bind<string>("", "CustomSurvivorDisable", "", new ConfigDescription("List of custom survivors names that are disabled. The name is printed to the chat and log at spawn. Example: 'CustomSurvivorDisable: = SNIPER_NAME AKALI'"));
             //ArtificerFlamethrowerToggle = Config.Bind<bool>("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
-            HoldSprintToWalk = Config.Bind<bool>("", "HoldSprintToWalk", true, new ConfigDescription("Holding the Sprint key temporarily disables auto-sprinting, making you walk. Overrided by ToggleAutoSprint.", new AcceptableValueList<bool>(true, false)));
-            ToggleAutoSprint = Config.Bind<bool>("", "ToggleAutoSprint", false, new ConfigDescription("Pressing the Sprint key toggles between walking and auto-sprinting. Overrides HoldSprintToWalk", new AcceptableValueList<bool>(true, false)));
-            DisableSprintingCrosshair = Config.Bind<bool>("", "DisableSprintingCrosshair", true, new ConfigDescription("Disables the (useless) sprinting crosshair.", new AcceptableValueList<bool>(true, false)));
-            CustomFOV = Config.Bind<int>("", "FOVValue", 70, new ConfigDescription("Change FOV. Game default is 60, set to -1 to disable change.", new AcceptableValueRange<int>(-1, 359)));
-            DisableFOVChange = Config.Bind<bool>("", "DisableFOVChange", false, new ConfigDescription("Disables FOV change when sprinting", new AcceptableValueList<bool>(true, false)));
-            SprintFOVMultiplier = Config.Bind<double>("", "SprintFOVMultiplier", 1.1, new ConfigDescription("Sets a custom sprinting FOV multiplier. Game default is 1.3, set to -1 to disable change.", new AcceptableValueRange<double>(-1, 3)));
-            DisableSpeedlines = Config.Bind<bool>("", "DisableSpeedlines", false, new ConfigDescription("Disables speedlines while sprinting", new AcceptableValueList<bool>(true, false)));
-            SprintInAnyDirection = Config.Bind<bool>("", "SprintInAnyDirection", false, new ConfigDescription("Cheat, Allows you to sprint in any direction.", new AcceptableValueList<bool>(true, false)));
-            AnimationCancelDelay = Config.Bind<double>("", "AnimationCancelDelay", 0.2, new ConfigDescription("Some skills can be animation cancelled by starting to sprint. This value sets how long to wait.", new AcceptableValueRange<double>(0.0, 1.0)));
+            HoldSprintToWalk = Config.Bind<bool>("Movement", "HoldSprintToWalk", true, new ConfigDescription("Holding the Sprint key temporarily disables auto-sprinting, making you walk. Overrided by ToggleAutoSprint.", new AcceptableValueList<bool>(true, false)));
+            ToggleAutoSprint = Config.Bind<bool>("Movement", "ToggleAutoSprint", false, new ConfigDescription("Pressing the Sprint key toggles between walking and auto-sprinting. Overrides HoldSprintToWalk", new AcceptableValueList<bool>(true, false)));
+            DisableSprintingCrosshair = Config.Bind<bool>("Visual", "DisableSprintingCrosshair", true, new ConfigDescription("Disables the (useless) sprinting crosshair.", new AcceptableValueList<bool>(true, false)));
+            CustomFOV = Config.Bind<int>("Visual", "FOVValue", -1, new ConfigDescription("Change FOV. Game default is 60, set to -1 to disable change.", new AcceptableValueRange<int>(-1, 359)));
+            DisableFOVChange = Config.Bind<bool>("Visual", "DisableFOVChange", false, new ConfigDescription("Disables FOV change when sprinting", new AcceptableValueList<bool>(true, false)));
+            SprintFOVMultiplier = Config.Bind<double>("Visual", "SprintFOVMultiplier", -1, new ConfigDescription("Sets a custom sprinting FOV multiplier. Game default is 1.3, set to -1 to disable change.", new AcceptableValueRange<double>(-1, 3)));
+            DisableSpeedlines = Config.Bind<bool>("Visual", "DisableSpeedlines", false, new ConfigDescription("Disables speedlines while sprinting", new AcceptableValueList<bool>(true, false)));
+            SprintInAnyDirection = Config.Bind<bool>("Movement", "SprintInAnyDirection", false, new ConfigDescription("Cheat, Allows you to sprint in any direction.", new AcceptableValueList<bool>(true, false)));
+            AnimationCancelDelay = Config.Bind<double>("Misc", "AnimationCancelDelay", 0.2, new ConfigDescription("Some skills can be animation cancelled by starting to sprint. This value sets how long to wait.", new AcceptableValueRange<double>(0.0, 1.0)));
 
 
             // MUL-T
@@ -247,6 +169,11 @@ namespace RTAutoSprintEx {
                                         if (RT_isSprinting && HoldSprintToWalk.Value && !ToggleAutoSprint.Value) RT_isSprinting = false;
                                         if (!RT_isSprinting && ShouldSprintBeDisabledOnThisBody(instanceFieldBody)) RT_isSprinting = true;
                                     }
+
+                                    if (ToggleAutoSprint.Value && inputPlayer.GetButtonDown("Sprint")){
+                                        RT_walkToggle = !RT_walkToggle;
+                                    }
+                                    
                                 }
 
                                 // Animation cancelling logic.
@@ -270,6 +197,7 @@ namespace RTAutoSprintEx {
                                     }
                                 }
 
+                                if (ToggleAutoSprint.Value && RT_walkToggle) RT_isSprinting = false;
                                 instanceFieldBodyInputs.sprint.PushState(RT_isSprinting);
                             } // End of if (instanceFieldBody)
                         } // End of if (networkUser) check
@@ -350,13 +278,17 @@ namespace RTAutoSprintEx {
 
         // Registers EntityStates as sprint disablers
         public void RegisterSprintDisabler<T>() where T : BaseState {
+#if DEBUG
             Debug.LogWarning("Sprint disabled for : " + typeof(T).ToString());
+#endif
             statesWhichDisableSprint.Add(typeof(T));
         }
 
         // Registers EntityStates as sprint delayers	
         public void RegisterDelayer<T>() where T : BaseState {
+#if DEBUG
             Debug.LogWarning("Sprint delay added for : " + typeof(T).ToString());
+ #endif
             statesWhichDelaySprint.Add(typeof(T));
         }
 

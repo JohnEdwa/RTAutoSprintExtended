@@ -24,12 +24,14 @@ using R2API;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using EntityStates;
+using RiskOfOptions;
 
 namespace RTAutoSprintEx {
     [BepInPlugin(GUID, NAME, VERSION)]
     [BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("com.rune580.riskofoptions")]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(CommandHelper))]
+    //[R2APISubmoduleDependency(nameof(CommandHelper))]
     
     public class RTAutoSprintEx : BaseUnityPlugin {
         public const string
@@ -53,10 +55,16 @@ namespace RTAutoSprintEx {
         public static ConfigEntry<double> AnimationCancelDelay { get; set; }
         public static ConfigEntry<bool> DisableFOVChange { get; set; }
         public static ConfigEntry<bool> DisableSpeedlines { get; set; }
-        public static ConfigEntry<int> CustomFOV { get; set; }
+        public static ConfigEntry<int> CustomFOV { get; set; }        
         public static ConfigEntry<double> SprintFOVMultiplier { get; set; }
 
+        public void CustomFOVChanged(float f) { CustomFOV.Value = (int) f; }
+        public void ToggleAutoSprintChanged(bool b) { ToggleAutoSprint.Value = b; }
+
+        
+
         public void Awake() {
+            //R2API.Utils.CommandHelper.AddToConsoleWhenReady();
 
             RTAutoSprintEx.RT_enabled = true;
             double RT_num = 0.0;
@@ -64,7 +72,6 @@ namespace RTAutoSprintEx {
             bool RT_animationCancel = false;
             bool RT_walkToggle = false;
 
-            R2API.Utils.CommandHelper.AddToConsoleWhenReady();
             //CustomSurvivors = Config.Bind<string>("", "CustomSurvivorDisable", "", new ConfigDescription("List of custom survivors names that are disabled. The name is printed to the chat and log at spawn. Example: 'CustomSurvivorDisable: = SNIPER_NAME AKALI'"));
             //ArtificerFlamethrowerToggle = Config.Bind<bool>("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
             HoldSprintToWalk = Config.Bind<bool>(
@@ -75,6 +82,8 @@ namespace RTAutoSprintEx {
                 "Movement", "ToggleAutoSprint", false, 
                 new ConfigDescription("Pressing the Sprint key toggles between walking and auto-sprinting. Overrides HoldSprintToWalk", 
                 new AcceptableValueList<bool>(true, false)));
+                ModSettingsManager.addOption(new ModOption(ModOption.OptionType.Bool, "ToggleAutoSprint", "Pressing the Sprint key toggles between walking and auto-sprinting. Overrides HoldSprintToWalk", ToggleAutoSprint.Value.ToString()));
+                ModSettingsManager.addListener(ModSettingsManager.getOption("ToggleAutoSprint"), new UnityEngine.Events.UnityAction<bool>(ToggleAutoSprintChanged));
             DisableSprintingCrosshair = Config.Bind<bool>(
                 "Visual", "DisableSprintingCrosshair", true, 
                 new ConfigDescription("Disables the (useless) sprinting crosshair.", 
@@ -83,6 +92,8 @@ namespace RTAutoSprintEx {
                 "Visual", "FOVValue", -1, 
                 new ConfigDescription("Change FOV. Game default is 60, set to -1 to disable change.", 
                 new AcceptableValueRange<int>(-1, 359)));
+                ModSettingsManager.addOption(new ModOption(ModOption.OptionType.Slider, "FOVValue", "Change FOV. Game default is 60, set to -1 to disable change.", CustomFOV.Value.ToString()));
+                ModSettingsManager.addListener(ModSettingsManager.getOption("FOVValue"), new UnityEngine.Events.UnityAction<float>(CustomFOVChanged));
             DisableFOVChange = Config.Bind<bool>(
                 "Visual", "DisableFOVChange", false, 
                 new ConfigDescription("Disables FOV change when sprinting", 
@@ -103,6 +114,10 @@ namespace RTAutoSprintEx {
                 "Misc", "AnimationCancelDelay", 0.2, 
                 new ConfigDescription("Some skills can be animation cancelled by starting to sprint. This value sets how long to wait.", 
                 new AcceptableValueRange<double>(0.0, 1.0)));
+
+            ModSettingsManager.setPanelDescription($"By JohnEdwa\n\nVersion " + VERSION );
+            ModSettingsManager.setPanelTitle("RTAutoSprintEx");
+
 
             // MUL-T
             RegisterSprintDisabler<EntityStates.Toolbot.ToolbotDualWield>();

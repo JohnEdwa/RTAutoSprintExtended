@@ -18,6 +18,9 @@
     <Reference Include="R2API">
       <HintPath>..\\..\\Libs\R2API.dll</HintPath>
     </Reference>  
+        <Reference Include="RiskOfOptions">
+      <HintPath>..\\..\\Libs\RiskOfOptions.dll</HintPath>
+    </Reference>  
 
 
     <Reference Include="Mono.Cecil">

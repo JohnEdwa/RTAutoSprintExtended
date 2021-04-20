@@ -21,7 +21,7 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 	public const string
 		NAME = "RTAutoSprintEx",
 		GUID = "com.johnedwa." + NAME,
-		VERSION = "1.3.2";
+		VERSION = "1.3.3";
 
 	public static ConfigEntry<string> CustomSurvivors { get; set; }
 	public static ConfigEntry<bool> HoldSprintToWalk { get; set; }
@@ -140,6 +140,8 @@ public class RTAutoSprintEx : BaseUnityPlugin {
 		On.EntityStates.Captain.Weapon.SetupAirstrike.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
 		On.EntityStates.Captain.Weapon.SetupSupplyDrop.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
 		On.EntityStates.Captain.Weapon.SetupSupplyDrop.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
+        On.EntityStates.Captain.Weapon.SetupAirstrikeAlt.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
+        On.EntityStates.Captain.Weapon.SetupAirstrikeAlt.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
 
 	// This could be eventually used to do all the disabling stuff without touching the skills themselves, I think.
  		//On.RoR2.CharacterBody.OnSkillActivated += (orig, self, GenericSkill) => {  orig(self, GenericSkill); Debug.Log( GenericSkill.skillDef.skillName + " | Index: ");};

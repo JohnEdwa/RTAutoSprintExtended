@@ -73,6 +73,10 @@ Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExten
 
 Full changelog is in [CHANGELOG.MD](https://github.com/JohnEdwa/RTAutoSprintExtended/blob/master/CHANGELOG.md).
 
+`1.3.3` [2021-04-20]
+
+* Fixed captains alt airstrike.
+
 `1.3.2` [2021-04-06]
 
 * Forgot to add command helper back.

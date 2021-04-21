@@ -8,6 +8,8 @@
 * [known issue] Artificer flamethrower "hold-to-cast" mode isn't implemented.
 * [known issue] Disabling the mod only on certain survivors isn't possible.
 
+Rest of the changelog can be found in [CHANGELOG.MD](https://github.com/JohnEdwa/RTAutoSprintExtended/blob/master/CHANGELOG.md).
+
 # Description
 
 Removes the need to manually sprint, instead always sprint when the base game would allow you to. Hold sprint to walk and cancel skills like flamethrower.

@@ -54,61 +54,13 @@ namespace RTAutoSprintEx {
         public static ConfigEntry<string> EntityStatesSprintingDelay { get; set; } 
 
         public void Awake() {
+            R2API.Utils.CommandHelper.AddToConsoleWhenReady();
             double RT_timer = 0.0;
             double RT_animationCancelDelay = 0.15;
             bool RT_isSprinting = false;
             bool RT_animationCancel = false;
             bool RT_walkToggle = false;
-
-            R2API.Utils.CommandHelper.AddToConsoleWhenReady();
-
-            conf = new ConfigFile(Paths.ConfigPath + "\\com.johnedwa.RTAutoSprintEx.cfg", true);
-            HoldSprintToWalk = conf.Bind<bool>(
-                "1) Movement", "HoldSprintToWalk", true, 
-                new ConfigDescription("Walk by holding down the sprint key. If disabled, makes the Sprint key toggle AutoSprinting functionality on and off.", 
-                new AcceptableValueList<bool>(true, false)));
-            SprintInAnyDirection = conf.Bind<bool>(
-                "1) Movement", "SprintInAnyDirection", false, 
-                new ConfigDescription("Cheat, Allows you to sprint in any direction. Please don't use in multiplayer.", 
-                new AcceptableValueList<bool>(true, false)));
-            DisableSprintingCrosshair = conf.Bind<bool>(
-                "2) Visual", "DisableSprintingCrosshair", true, 
-                new ConfigDescription("Disables the useless special sprinting chevron crosshair.", 
-                new AcceptableValueList<bool>(true, false)));
-            CustomFOV = conf.Bind<int>(
-                "2) Visual", "FOVValue", 60, 
-                new ConfigDescription("Sets a custom (vertical) FOV. Game default 60V is roughly 90H.", 
-                new AcceptableValueRange<int>(1, 180)));
-            SprintFOVMultiplier = conf.Bind<double>(
-                "2) Visual", "SprintFOVMultiplier", 1.3, 
-                new ConfigDescription("Sets the sprinting FOV multiplier. Set to 1 to disable.", 
-                new AcceptableValueRange<double>(0.1, 2)));
-            DisableSpeedlines = conf.Bind<bool>(
-                "2) Visual", "DisableSpeedlines", false, 
-                new ConfigDescription("Disables the speedlines effect shown when sprinting.", 
-                new AcceptableValueList<bool>(true, false)));
-           DisableAutoSprinting = conf.Bind<bool>(
-                "3) Misc", "DisabledAutoSprinting", false, 
-                new ConfigDescription("Disable the AutoSprinting part of the mod.", 
-                new AcceptableValueList<bool>(true, false)));
-           DisableVisualChanges = conf.Bind<bool>(
-                "3) Misc", "DisableVisualChanges", false, 
-                new ConfigDescription("Disable the FOV and visual changes of the mod.", 
-                new AcceptableValueList<bool>(true, false)));
-/*
-            EntityStatesSprintingDisabled = Config.Bind<string>(
-                "3) Misc", "CustomSprintingDisabled", "",
-                new ConfigDescription("List of EntityStates that will block sprinting - example: `EntityStates.Toolbot.FireNailgun, EntityStates.Toolbot.AimStunDrone`"));
-            EntityStatesSprintingDelay = Config.Bind<string>(
-                "3) Misc", "CustomAnimationDelayed", "",
-                new ConfigDescription("List of EntityStates that will delay sprinting between attacks (using `duration` field) - example: `EntityStates.Toolbot.FireGrenadeLauncher, EntityStates.Mage.Weapon.FireFireBolt`"));
-*/
-
-            RTAutoSprintEx.RT_enabled = !DisableAutoSprinting.Value;
-            RTAutoSprintEx.RT_visuals = !DisableVisualChanges.Value;
-
-            //CustomSurvivors = conf.Bind<string>("", "CustomSurvivorDisable", "", new ConfigDescription("List of custom survivors names that are disabled. The name is printed to the chat and log at spawn. Example: 'CustomSurvivorDisable: = SNIPER_NAME AKALI'"));
-            //ArtificerFlamethrowerToggle = conf.Bind<bool>("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
+            SetupConfiguration();
 
             // MUL-T
             RegisterSprintDisabler("EntityStates.Toolbot.ToolbotDualWield");
@@ -177,7 +129,6 @@ namespace RTAutoSprintEx {
 
                 //The House
                 RegisterDelayer("HouseMod2.SkillStates.Roulette");
-
             
             // On.RoR2.CharacterBody.OnSkillActivated += (orig, self, GenericSkill) => { 
             //     orig(self, GenericSkill); 
@@ -190,8 +141,6 @@ namespace RTAutoSprintEx {
             //         + GenericSkill.characterBody.masterObject + " | "   // CommandoMaster(Clone) (UnityEngine.GameObject)           
             //         );
             // }; 
-            
-           
 
             On.RoR2.PlayerCharacterMasterController.FixedUpdate += delegate (On.RoR2.PlayerCharacterMasterController.orig_FixedUpdate orig, RoR2.PlayerCharacterMasterController self) {
                 orig.Invoke(self);
@@ -203,30 +152,33 @@ namespace RTAutoSprintEx {
                             if (instanceFieldBody) {
                                 Player inputPlayer = self.networkUser.localUser.inputPlayer;
                                 RT_isSprinting = instanceFieldBody.isSprinting;
-
+                            // Periodic sprint checker
                                 if (!RT_isSprinting) {
                                     RT_timer += (double)Time.deltaTime;
                                     if (RT_timer >= 0.1) {
-                                        if (!RT_animationCancel) { RT_timer = 0 - SprintDelayTime(instanceFieldBody); }
+                                        if (!RT_animationCancel) { 
+                                            RT_timer = 0 - SprintDelayTime(instanceFieldBody);
+                                        }
                                         if (RT_timer >= 0) {
-                                            RT_timer = 0;
                                             RT_isSprinting = !ShouldSprintBeDisabledOnThisBody(instanceFieldBody);
                                             RT_animationCancel = false;
+                                            RT_timer = 0;
                                         }
                                     }
                                 } else { RT_timer = 0; }
 
+                            // Walking Logic
                                 if (inputPlayer.GetButton("Sprint")) {
                                     if (RT_isSprinting && HoldSprintToWalk.Value) RT_isSprinting = false;
                                     if (!RT_isSprinting && ShouldSprintBeDisabledOnThisBody(instanceFieldBody)) RT_isSprinting = true;
                                     RT_timer = 0;
                                 }
-
+                            // Walk Toggle logic
                                 if (!HoldSprintToWalk.Value && inputPlayer.GetButtonDown("Sprint")){
                                     RT_walkToggle = !RT_walkToggle;
                                 }
 
-                                // Animation cancelling logic.
+                            // Animation cancelling logic.
                                 if (!RT_animationCancel && RT_timer < -(RT_animationCancelDelay)
                                     && !inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SecondarySkill")
                                     && !inputPlayer.GetButton("SpecialSkill") && !inputPlayer.GetButton("UtilitySkill")) {
@@ -234,7 +186,7 @@ namespace RTAutoSprintEx {
                                     RT_animationCancel = true;
                                 }
 
-                                // Angle check disables sprinting if the movement angle is too large
+                            // Angle check disables sprinting if the movement angle is too large
                                 if (RT_isSprinting && !SprintInAnyDirection.Value) {
                                     Vector3 aimDirection = instanceFieldBodyInputs.aimDirection;
                                     aimDirection.y = 0f;
@@ -254,7 +206,6 @@ namespace RTAutoSprintEx {
                     } // End of if (instanceFieldBodyInputs)
                 } // End of "RT_enabled"
             }; // End of FixedUpdate
-
 
             // Custom FOV
             On.RoR2.CameraRigController.Update += (orig, self) => {
@@ -408,5 +359,55 @@ namespace RTAutoSprintEx {
                 }
             } catch (Exception ex) { Debug.LogError(ex); }
         }
+
+        private static void SetupConfiguration() {
+                        conf = new ConfigFile(Paths.ConfigPath + "\\com.johnedwa.RTAutoSprintEx.cfg", true);
+            HoldSprintToWalk = conf.Bind<bool>(
+                "1) Movement", "HoldSprintToWalk", true, 
+                new ConfigDescription("Walk by holding down the sprint key. If disabled, makes the Sprint key toggle AutoSprinting functionality on and off.", 
+                new AcceptableValueList<bool>(true, false)));
+            SprintInAnyDirection = conf.Bind<bool>(
+                "1) Movement", "SprintInAnyDirection", false, 
+                new ConfigDescription("Cheat, Allows you to sprint in any direction. Please don't use in multiplayer.", 
+                new AcceptableValueList<bool>(true, false)));
+            DisableSprintingCrosshair = conf.Bind<bool>(
+                "2) Visual", "DisableSprintingCrosshair", true, 
+                new ConfigDescription("Disables the useless special sprinting chevron crosshair.", 
+                new AcceptableValueList<bool>(true, false)));
+            CustomFOV = conf.Bind<int>(
+                "2) Visual", "FOVValue", 60, 
+                new ConfigDescription("Sets a custom (vertical) FOV. Game default 60V is roughly 90H.", 
+                new AcceptableValueRange<int>(1, 180)));
+            SprintFOVMultiplier = conf.Bind<double>(
+                "2) Visual", "SprintFOVMultiplier", 1.3, 
+                new ConfigDescription("Sets the sprinting FOV multiplier. Set to 1 to disable.", 
+                new AcceptableValueRange<double>(0.1, 2)));
+            DisableSpeedlines = conf.Bind<bool>(
+                "2) Visual", "DisableSpeedlines", false, 
+                new ConfigDescription("Disables the speedlines effect shown when sprinting.", 
+                new AcceptableValueList<bool>(true, false)));
+           DisableAutoSprinting = conf.Bind<bool>(
+                "3) Misc", "DisabledAutoSprinting", false, 
+                new ConfigDescription("Disable the AutoSprinting part of the mod.", 
+                new AcceptableValueList<bool>(true, false)));
+           DisableVisualChanges = conf.Bind<bool>(
+                "3) Misc", "DisableVisualChanges", false, 
+                new ConfigDescription("Disable the FOV and visual changes of the mod.", 
+                new AcceptableValueList<bool>(true, false)));
+/*
+            EntityStatesSprintingDisabled = Config.Bind<string>(
+                "3) Misc", "CustomSprintingDisabled", "",
+                new ConfigDescription("List of EntityStates that will block sprinting - example: `EntityStates.Toolbot.FireNailgun, EntityStates.Toolbot.AimStunDrone`"));
+            EntityStatesSprintingDelay = Config.Bind<string>(
+                "3) Misc", "CustomAnimationDelayed", "",
+                new ConfigDescription("List of EntityStates that will delay sprinting between attacks (using `duration` field) - example: `EntityStates.Toolbot.FireGrenadeLauncher, EntityStates.Mage.Weapon.FireFireBolt`"));
+*/
+
+            RTAutoSprintEx.RT_enabled = !DisableAutoSprinting.Value;
+            RTAutoSprintEx.RT_visuals = !DisableVisualChanges.Value;
+
+            //CustomSurvivors = conf.Bind<string>("", "CustomSurvivorDisable", "", new ConfigDescription("List of custom survivors names that are disabled. The name is printed to the chat and log at spawn. Example: 'CustomSurvivorDisable: = SNIPER_NAME AKALI'"));
+            //ArtificerFlamethrowerToggle = conf.Bind<bool>("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
+        } 
     } // End of class RTAutoSprintEx
 } // End of Namespace

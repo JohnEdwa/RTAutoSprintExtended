@@ -1,5 +1,11 @@
 # RT AutoSprint Extended 2 | Game ver. 1.1.1.4
 
+---
+
+## Contact
+
+Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExtended) or find me on the RoR2 modding discord (JohnEdwa#7903).
+
 ## Changelog
 
 `2.0.0`  [2021-04-xx]
@@ -15,9 +21,7 @@ Rest of the changelog can be found in [CHANGELOG.MD](https://github.com/JohnEdwa
 Removes the need to manually sprint, instead always sprint when the base game would allow you to. Hold sprint to walk and cancel skills like flamethrower.
 
 To supplement that, the sprinting crosshair and speedlines are removed, and the FOV and FOV sprint expanding can be edited.
-
-Source code can be found [at the Github repo here,](https://github.com/JohnEdwa/RTAutoSprintExtended) if you find something that doesn't work, please open an issue on Github.
-Kudos to Relocity and Thrawnarch for creating the original mod, and Rein, Harb and ThinkInvisible (among many others) from the modding Discord for help.
+Kudos to Relocity and Thrawnarch for creating the original mod, and Rein, Harb, ThinkInvisible, Twiner son of Twine, and Aaron (among others) from the modding Discord for help.
 
 ## Features, Changes and Options.
 
@@ -30,10 +34,12 @@ Kudos to Relocity and Thrawnarch for creating the original mod, and Rein, Harb a
 
 You can use SendMessage to register an EntityState to the list of Sprint Disablers and Animation Delayers by using SendMessage:
 
-`if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.johnedwa.RTAutoSprintEx")) {
+```
+if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.johnedwa.RTAutoSprintEx")) {
     SendMessage("RT_SprintDisableMessage", "EntityStates.Mage.Weapon.Flamethrower"); 
     SendMessage("RT_AnimationDelayMessage", "EntityStates.Mage.Weapon.FireFireBolt"); 
-}`
+}
+```
 
 RT_SprintDisableMessage simply disables AutoSprinting when the player is in that EntityState.
 RT_AnimationDelayMessage looks for a field called `duration` to use as a delay. 
@@ -48,27 +54,23 @@ Obviously the SendMessage has to happen after RTAutoSprintEx has been loaded, so
 
 ### Visual
 
-    * `FOVValue [60], 1-180`: Sets a custom (vertical) FOV. 60V is roughly 90H.
-    * `SprintFOVMultiplier: [1.3] 0.1-2.0`: Sets the sprinting FOV multiplier. Set to 1 to disable.
-    * `DisableSprintingCrosshair: [true]/false`: Disables the useless special sprinting chevron crosshair.
-    * `DisableSpeedlines: true/[false]`: Disables the speedlines effect shown when sprinting.
+* `FOVValue [60], 1-180`: Sets a custom (vertical) FOV. 60V is roughly 90H.
+* `SprintFOVMultiplier: [1.3] 0.1-2.0`: Sets the sprinting FOV multiplier. Set to 1 to disable.
+* `DisableSprintingCrosshair: [true]/false`: Disables the useless special sprinting chevron crosshair.
+* `DisableSpeedlines: true/[false]`: Disables the speedlines effect shown when sprinting.
 
 ### Misc
 
-    * `DisabledAutoSprinting: true/[false]`: Disables the autosprinting part of the mod.
-    * `DisableVisualChanges: true/[false]`: Disables the FOV/visual modification side of the mod.
+* `DisabledAutoSprinting: true/[false]`: Disables the autosprinting part of the mod.
+* `DisableVisualChanges: true/[false]`: Disables the FOV/visual modification side of the mod.
 
 ### Console commands
 
-    * `rt_help`: Prints all the possible commands.
-    * `rt_reload`: Reload the RTAutoSprintEx2.cfg configuration file.
-    * `rt_sprint_enable true/false`: Enables/Disables the sprinting part of the mod.
+* `rt_help`: Prints all the possible commands.
+* `rt_reload`: Reload the RTAutoSprintEx2.cfg configuration file.
+* `rt_sprint_enable true/false`: Enables/Disables the sprinting part of the mod.
 
 ## Known Issues / ToDo
 
 * No ability to disable for individual survivors or skills - yet.
 * Artificer Flamethrower "Hold to Cast" is not implemented.
-
-## Contact
-
-Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExtended) or find me on the RoR2 modding discord (JohnEdwa#7903).

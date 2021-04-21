@@ -4,7 +4,7 @@
 
 `2.0.0`  [2021-04-xx]
 
-* Complete rewrite of the mod. Now allows me to add support for custom survivors, if you know of any skills that don't work, contact me (see below).
+* Complete rewrite of the mod. Now with possible support for custom survivors, skills and a kind-of-an-API.
 * [known issue] Artificer flamethrower "hold-to-cast" mode isn't implemented.
 * [known issue] Disabling the mod only on certain survivors isn't possible.
 
@@ -26,10 +26,19 @@ Kudos to Relocity and Thrawnarch for creating the original mod, and Rein, Harb a
 * Modify the the FOV, sprinting FOV change, and speedline effect in the config.
 * Most of the configuration edits can be dones while the game is running, use the `rt_reload` console command to reload the file.
 
-### Mod compatibility patches:
+### Mod compatibility and "API":
 
-* Artificer Extended, Mando_Gaming, EggsSkills, The House, Playble Templar.    
-If you find a skill that either sprints annoyingly between repeated uses, or out right cancels casting/channeling/charging, contact me (see below).
+You can use SendMessage to register an EntityState to the list of Sprint Disablers and Animation Delayers by using SendMessage:
+
+`if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.johnedwa.RTAutoSprintEx")) {
+    SendMessage("RT_SprintDisableMessage", "EntityStates.Mage.Weapon.Flamethrower"); 
+    SendMessage("RT_AnimationDelayMessage", "EntityStates.Mage.Weapon.FireFireBolt"); 
+}`
+
+RT_SprintDisableMessage simply disables AutoSprinting when the player is in that EntityState.
+RT_AnimationDelayMessage looks for a field called `duration` to use as a delay. 
+
+Obviously the SendMessage has to happen after RTAutoSprintEx has been loaded, so due to possible load order conflicts don't do it in the Awake().
 
 ## Configuration
 

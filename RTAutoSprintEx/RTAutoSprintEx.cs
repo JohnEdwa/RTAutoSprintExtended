@@ -36,8 +36,11 @@ namespace RTAutoSprintEx {
 #if DEBUGGY
         internal HashSet<string> knownEntityStates = new HashSet<string>();
 #endif
-        internal HashSet<string> statesWhichDisableSprint = new HashSet<string>();
-        internal HashSet<string> statesWhichDelaySprint = new HashSet<string>();
+        internal HashSet<string> stateSprintDisableList = new HashSet<string>();
+        internal HashSet<string> stateAnimationDelayList = new HashSet<string>();
+
+        //internal string[] SprintDisablerList = {"EntityStates.Toolbot.ToolbotDualWield", "EntityStates.Toolbot.ToolbotDualWieldBase", "EntityStates.Toolbot.ToolbotDualWieldStart", "EntityStates.Toolbot.FireNailgun", "EntityStates.Toolbot.FireNailgun"};
+        //internal string[] SprintDelayerList = {"EntityStates.Toolbot.FireGrenadeLauncher"};
 
         public static ConfigFile conf;  
         public static ConfigEntry<bool> SprintInAnyDirection { get; set; }
@@ -53,6 +56,65 @@ namespace RTAutoSprintEx {
         public static ConfigEntry<string> EntityStatesSprintingDisabled { get; set; } 
         public static ConfigEntry<string> EntityStatesSprintingDelay { get; set; } 
 
+        // Receive SendMessages.
+        public void RT_SprintDisableMessage(string state) { stateSprintDisableList.Add(state); }
+        public void RT_AnimationDelayMessage(string state) { stateAnimationDelayList.Add(state); }
+
+        // Registers EntityStates as sprint delayers    
+        private bool RT_RegisterAnimationDelay(string state) {
+#if DEBUGGY
+            Debug.LogWarning("Sprint delay added for : " + state);
+#endif
+            return stateAnimationDelayList.Add(state);
+        }
+
+        // Registers EntityStates as sprint disablers
+        private bool RT_RegisterSprintDisable(string state) {
+#if DEBUGGY
+            Debug.LogWarning("Sprint disabled for : " + state);
+#endif
+            return stateSprintDisableList.Add(state);
+        }
+
+        private double SprintDelayTime(CharacterBody targetBody) {
+            float duration = 0.0f;
+            EntityStateMachine[] stateMachines;
+            stateMachines = targetBody.GetComponents<EntityStateMachine>();
+            foreach (EntityStateMachine machine in stateMachines) {
+                var currentState = machine.state;
+                if (currentState == null) { return duration; }
+                if (stateAnimationDelayList.Contains(currentState.ToString())) {
+                    try { duration = currentState.GetFieldValue<float>("duration");} catch {}
+                    //var stateField = currentState.GetType().GetFieldCached("duration");
+                    //if (stateField != null) duration = (float)stateField.GetValue(currentState);
+                    return duration;
+                }
+            }
+            return duration;
+        }
+
+        // Checks if an EntityState blocks sprinting
+        private bool ShouldSprintBeDisabledOnThisBody(CharacterBody targetBody) {
+            EntityStateMachine[] stateMachines;
+            stateMachines = targetBody.GetComponents<EntityStateMachine>();
+            bool isSprintBlocked = false;
+            foreach (EntityStateMachine machine in stateMachines) {
+                var currentState = machine.state;
+                if (currentState == null) { return false; }
+#if DEBUGGY
+                if (!knownEntityStates.Contains(currentState.ToString())) {
+                    knownEntityStates.Add(currentState.ToString());
+                    Debug.LogError("List of Known EntityStates;");
+                    foreach (var item in knownEntityStates) {
+                        Debug.Log(item);
+                    }
+                }
+#endif
+                if (stateSprintDisableList.Contains(currentState.ToString())) { isSprintBlocked = true; }
+            }
+            return isSprintBlocked;
+        }
+
         public void Awake() {
             R2API.Utils.CommandHelper.AddToConsoleWhenReady();
             double RT_timer = 0.0;
@@ -60,76 +122,80 @@ namespace RTAutoSprintEx {
             bool RT_isSprinting = false;
             bool RT_animationCancel = false;
             bool RT_walkToggle = false;
+
             SetupConfiguration();
 
+            //foreach (var item in SprintDisablerList) { RT_RegisterSprintDisable(item); }
+            //foreach (var item in SprintDelayerList) { RT_RegisterAnimationDelay(item); }
+
             // MUL-T
-            RegisterSprintDisabler("EntityStates.Toolbot.ToolbotDualWield");
-            RegisterSprintDisabler("EntityStates.Toolbot.ToolbotDualWieldBase");
-            RegisterSprintDisabler("EntityStates.Toolbot.ToolbotDualWieldStart");
-            RegisterSprintDisabler("EntityStates.Toolbot.FireNailgun");
-            RegisterSprintDisabler("EntityStates.Toolbot.AimStunDrone");
-            RegisterDelayer("EntityStates.Toolbot.FireGrenadeLauncher");
+            RT_RegisterSprintDisable("EntityStates.Toolbot.ToolbotDualWield");
+            RT_RegisterSprintDisable("EntityStates.Toolbot.ToolbotDualWieldBase");
+            RT_RegisterSprintDisable("EntityStates.Toolbot.ToolbotDualWieldStart");
+            RT_RegisterSprintDisable("EntityStates.Toolbot.FireNailgun");
+            RT_RegisterSprintDisable("EntityStates.Toolbot.AimStunDrone");
+            RT_RegisterAnimationDelay("EntityStates.Toolbot.FireGrenadeLauncher");
 
             // Artificer
-            RegisterSprintDisabler("EntityStates.Mage.Weapon.Flamethrower");
-            RegisterSprintDisabler("EntityStates.Mage.Weapon.PrepWall");
-            RegisterDelayer("EntityStates.Mage.Weapon.FireFireBolt");
-            RegisterDelayer("EntityStates.Mage.Weapon.FireLaserbolt");
+            RT_RegisterSprintDisable("EntityStates.Mage.Weapon.Flamethrower");
+            RT_RegisterSprintDisable("EntityStates.Mage.Weapon.PrepWall");
+            RT_RegisterAnimationDelay("EntityStates.Mage.Weapon.FireFireBolt");
+            RT_RegisterAnimationDelay("EntityStates.Mage.Weapon.FireLaserbolt");
 
             // Bandit
-            RegisterSprintDisabler("EntityStates.Bandit2.Weapon.BasePrepSidearmRevolverState");
-            RegisterSprintDisabler("EntityStates.Bandit2.Weapon.PrepSidearmResetRevolver");
-            RegisterSprintDisabler("EntityStates.Bandit2.Weapon.PrepSidearmSkullRevolver");
-            RegisterDelayer("EntityStates.Bandit2.Weapon.Bandit2FirePrimaryBase");
-            RegisterDelayer("EntityStates.Bandit2.Weapon.FireShotgun2");
-            RegisterDelayer("EntityStates.Bandit2.Weapon.Bandit2FireRifle");
+            RT_RegisterSprintDisable("EntityStates.Bandit2.Weapon.BasePrepSidearmRevolverState");
+            RT_RegisterSprintDisable("EntityStates.Bandit2.Weapon.PrepSidearmResetRevolver");
+            RT_RegisterSprintDisable("EntityStates.Bandit2.Weapon.PrepSidearmSkullRevolver");
+            RT_RegisterAnimationDelay("EntityStates.Bandit2.Weapon.Bandit2FirePrimaryBase");
+            RT_RegisterAnimationDelay("EntityStates.Bandit2.Weapon.FireShotgun2");
+            RT_RegisterAnimationDelay("EntityStates.Bandit2.Weapon.Bandit2FireRifle");
 
             // Engineer
-            RegisterSprintDisabler("EntityStates.Engi.EngiMissilePainter.Paint");
-            RegisterDelayer("EntityStates.Engi.EngiWeapon.FireMines");
-            RegisterDelayer("EntityStates.Engi.EngiWeapon.FireSeekerGrenades");
+            RT_RegisterSprintDisable("EntityStates.Engi.EngiMissilePainter.Paint");
+            RT_RegisterAnimationDelay("EntityStates.Engi.EngiWeapon.FireMines");
+            RT_RegisterAnimationDelay("EntityStates.Engi.EngiWeapon.FireSeekerGrenades");
 
             // Rex
-            RegisterSprintDisabler("EntityStates.Treebot.Weapon.AimMortar");
-            RegisterSprintDisabler("EntityStates.Treebot.Weapon.AimMortar2");
-            RegisterSprintDisabler("EntityStates.Treebot.Weapon.AimMortarRain");
-            RegisterDelayer("EntityStates.Treebot.Weapon.FireSyringe");
+            RT_RegisterSprintDisable("EntityStates.Treebot.Weapon.AimMortar");
+            RT_RegisterSprintDisable("EntityStates.Treebot.Weapon.AimMortar2");
+            RT_RegisterSprintDisable("EntityStates.Treebot.Weapon.AimMortarRain");
+            RT_RegisterAnimationDelay("EntityStates.Treebot.Weapon.FireSyringe");
 
             // Captain
-            RegisterSprintDisabler("EntityStates.Captain.Weapon.SetupAirstrike");
-            RegisterSprintDisabler("EntityStates.Captain.Weapon.SetupAirstrikeAlt");
-            RegisterSprintDisabler("EntityStates.Captain.Weapon.SetupSupplyDrop");
+            RT_RegisterSprintDisable("EntityStates.Captain.Weapon.SetupAirstrike");
+            RT_RegisterSprintDisable("EntityStates.Captain.Weapon.SetupAirstrikeAlt");
+            RT_RegisterSprintDisable("EntityStates.Captain.Weapon.SetupSupplyDrop");
 
             // Acrid
-            RegisterDelayer("EntityStates.Croco.Slash");
+            RT_RegisterAnimationDelay("EntityStates.Croco.Slash");
 
             // Commando
-            RegisterDelayer("EntityStates.Commando.CommandoWeapon.FirePistol2");
+            RT_RegisterAnimationDelay("EntityStates.Commando.CommandoWeapon.FirePistol2");
 
             // Loader
-            RegisterDelayer("EntityStates.Loader.SwingComboFist");
+            RT_RegisterAnimationDelay("EntityStates.Loader.SwingComboFist");
 
             // Custom Characters and other mods
                 // Artificer Extended
-                RegisterDelayer("AltArtificerExtended.EntityStates.FireIceShard");
-                RegisterDelayer("AltArtificerExtended.EntityStates.FireLaserbolts");
-                RegisterDelayer("AltArtificerExtended.EntityStates.FireSnowBall");
+                RT_RegisterAnimationDelay("AltArtificerExtended.EntityStates.FireIceShard");
+                RT_RegisterAnimationDelay("AltArtificerExtended.EntityStates.FireLaserbolts");
+                RT_RegisterAnimationDelay("AltArtificerExtended.EntityStates.FireSnowBall");
 
                 // MandoGaming
-                RegisterDelayer("FMCommando.Skills.HeavyPistol2");
-                RegisterDelayer("FMCommando.Skills.BeamPistol");
+                RT_RegisterAnimationDelay("FMCommando.Skills.HeavyPistol2");
+                RT_RegisterAnimationDelay("FMCommando.Skills.BeamPistol");
 
                 //EggsSkills
-                RegisterSprintDisabler("EggsSkills.EntityStates.DirectiveRoot");
-                RegisterDelayer("EggsSkills.EntityStates.CombatShotgunEntity");
-                RegisterDelayer("EggsSkills.EntityStates.TeslaMineFireState");
+                RT_RegisterSprintDisable("EggsSkills.EntityStates.DirectiveRoot");
+                RT_RegisterAnimationDelay("EggsSkills.EntityStates.CombatShotgunEntity");
+                RT_RegisterAnimationDelay("EggsSkills.EntityStates.TeslaMineFireState");
 
                 //Playble Templar
-                RegisterSprintDisabler("Templar.TemplarRifleFire");
+                RT_RegisterSprintDisable("Templar.TemplarRifleFire");
 
                 //The House
-                RegisterDelayer("HouseMod2.SkillStates.Roulette");
-            
+                RT_RegisterAnimationDelay("HouseMod2.SkillStates.Roulette");
+          
             // On.RoR2.CharacterBody.OnSkillActivated += (orig, self, GenericSkill) => { 
             //     orig(self, GenericSkill); 
             //     Debug.Log( 
@@ -270,61 +336,6 @@ namespace RTAutoSprintEx {
                 Debug.Log("RtAutoSprintEx: CameraRigController.Update IL edits done.");
             };
         } // End of Awake
-
-        // Registers EntityStates as sprint disablers
-        public void RegisterSprintDisabler(string state){
-#if DEBUGGY
-            Debug.LogWarning("Sprint disabled for : " + state);
-#endif
-            statesWhichDisableSprint.Add(state);
-        }
-
-        // Registers EntityStates as sprint delayers    
-        public void RegisterDelayer(string state){
-#if DEBUGGY
-            Debug.LogWarning("Sprint delay added for : " + state);
-#endif
-            statesWhichDelaySprint.Add(state);
-        }
-
-        public double SprintDelayTime(CharacterBody targetBody) {
-            float duration = 0.0f;
-            EntityStateMachine[] stateMachines;
-            stateMachines = targetBody.GetComponents<EntityStateMachine>();
-            foreach (EntityStateMachine machine in stateMachines) {
-                var currentState = machine.state;
-                if (currentState == null) { return duration; }
-                if (statesWhichDelaySprint.Contains(currentState.ToString())) {
-                    try { duration = currentState.GetFieldValue<float>("duration");} catch {}
-                    //var stateField = currentState.GetType().GetFieldCached("duration");
-                    //if (stateField != null) duration = (float)stateField.GetValue(currentState);
-                    return duration;
-                }
-            }
-            return duration;
-        }
-
-        // Checks if an EntityState blocks sprinting
-        public bool ShouldSprintBeDisabledOnThisBody(CharacterBody targetBody) {
-            EntityStateMachine[] stateMachines;
-            stateMachines = targetBody.GetComponents<EntityStateMachine>();
-            bool isSprintBlocked = false;
-            foreach (EntityStateMachine machine in stateMachines) {
-                var currentState = machine.state;
-                if (currentState == null) { return false; }
-#if DEBUGGY
-                if (!knownEntityStates.Contains(currentState.ToString())) {
-                    knownEntityStates.Add(currentState.ToString());
-                    Debug.LogError("List of Known EntityStates;");
-                    foreach (var item in knownEntityStates) {
-                        Debug.Log(item);
-                    }
-                }
-#endif
-                if (statesWhichDisableSprint.Contains(currentState.ToString())) { isSprintBlocked = true; }
-            }
-            return isSprintBlocked;
-        }
         
         // Console Commands
         [RoR2.ConCommand(commandName = "rt_help", flags = ConVarFlags.None, helpText = "List all RTAutoSprintEx console commands.")]
@@ -346,7 +357,6 @@ namespace RTAutoSprintEx {
         private static void CCRTReload(ConCommandArgs args) {
             conf.Reload();
             Debug.Log("Configuration hopefully reloaded.");
-            
         }
 
         [ConCommand(commandName = "rt_sprint_enabled", flags = ConVarFlags.None, helpText = "Enable/Disable the sprinting component of the mod.")]
@@ -361,7 +371,7 @@ namespace RTAutoSprintEx {
         }
 
         private static void SetupConfiguration() {
-                        conf = new ConfigFile(Paths.ConfigPath + "\\com.johnedwa.RTAutoSprintEx.cfg", true);
+            conf = new ConfigFile(Paths.ConfigPath + "\\com.johnedwa.RTAutoSprintEx.cfg", true);
             HoldSprintToWalk = conf.Bind<bool>(
                 "1) Movement", "HoldSprintToWalk", true, 
                 new ConfigDescription("Walk by holding down the sprint key. If disabled, makes the Sprint key toggle AutoSprinting functionality on and off.", 
@@ -408,6 +418,6 @@ namespace RTAutoSprintEx {
 
             //CustomSurvivors = conf.Bind<string>("", "CustomSurvivorDisable", "", new ConfigDescription("List of custom survivors names that are disabled. The name is printed to the chat and log at spawn. Example: 'CustomSurvivorDisable: = SNIPER_NAME AKALI'"));
             //ArtificerFlamethrowerToggle = conf.Bind<bool>("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
-        } 
+        } // End of SetupConfiguration()
     } // End of class RTAutoSprintEx
 } // End of Namespace

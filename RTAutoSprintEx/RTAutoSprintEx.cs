@@ -24,17 +24,12 @@ using MonoMod.Cil;
 using EntityStates;
 
 namespace RTAutoSprintEx {
-    [BepInPlugin(GUID, NAME, VERSION)]
+    [BepInPlugin("com.johnedwa.RTAutoSprintEx", "RTAutoSprintEx", "2.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync)]
     [R2APISubmoduleDependency(nameof(CommandHelper))]
     
     public class RTAutoSprintEx : BaseUnityPlugin {
-        public const string
-            NAME = "RTAutoSprintEx",
-            GUID = "com.johnedwa." + NAME,
-            VERSION = "2.0.0";
-
         private static bool RT_enabled = true;
         private static bool RT_visuals = true;
 
@@ -44,23 +39,21 @@ namespace RTAutoSprintEx {
         internal HashSet<string> statesWhichDisableSprint = new HashSet<string>();
         internal HashSet<string> statesWhichDelaySprint = new HashSet<string>();
 
-
         public static ConfigFile conf;  
         public static ConfigEntry<bool> SprintInAnyDirection { get; set; }
         public static ConfigEntry<bool> HoldSprintToWalk { get; set; }
         public static ConfigEntry<bool> ArtificerFlamethrowerToggle { get; set; }
         public static ConfigEntry<bool> DisableSprintingCrosshair { get; set; }
-        //public static ConfigEntry<double> AnimationCancelDelay { get; set; }
         public static ConfigEntry<bool> DisableFOVChange { get; set; }
         public static ConfigEntry<bool> DisableSpeedlines { get; set; }
         public static ConfigEntry<int> CustomFOV { get; set; }        
         public static ConfigEntry<double> SprintFOVMultiplier { get; set; }
         public static ConfigEntry<bool> DisableAutoSprinting { get; set; }    
-        public static ConfigEntry<bool> DisableVisualChanges { get; set; }     
-            
+        public static ConfigEntry<bool> DisableVisualChanges { get; set; }    
+        public static ConfigEntry<string> EntityStatesSprintingDisabled { get; set; } 
+        public static ConfigEntry<string> EntityStatesSprintingDelay { get; set; } 
 
         public void Awake() {
-
             double RT_timer = 0.0;
             double RT_animationCancelDelay = 0.15;
             bool RT_isSprinting = false;
@@ -70,43 +63,46 @@ namespace RTAutoSprintEx {
             R2API.Utils.CommandHelper.AddToConsoleWhenReady();
 
             conf = new ConfigFile(Paths.ConfigPath + "\\com.johnedwa.RTAutoSprintEx.cfg", true);
-
             HoldSprintToWalk = conf.Bind<bool>(
                 "1) Movement", "HoldSprintToWalk", true, 
                 new ConfigDescription("Walk by holding down the sprint key. If disabled, makes the Sprint key toggle AutoSprinting functionality on and off.", 
                 new AcceptableValueList<bool>(true, false)));
             SprintInAnyDirection = conf.Bind<bool>(
                 "1) Movement", "SprintInAnyDirection", false, 
-                new ConfigDescription("Cheat, Allows you to sprint in any direction.", 
+                new ConfigDescription("Cheat, Allows you to sprint in any direction. Please don't use in multiplayer.", 
                 new AcceptableValueList<bool>(true, false)));
             DisableSprintingCrosshair = conf.Bind<bool>(
                 "2) Visual", "DisableSprintingCrosshair", true, 
-                new ConfigDescription("Disables the (useless) sprinting crosshair.", 
+                new ConfigDescription("Disables the useless special sprinting chevron crosshair.", 
                 new AcceptableValueList<bool>(true, false)));
             CustomFOV = conf.Bind<int>(
-                "2) Visual", "FOVValue", -1, 
-                new ConfigDescription("Change FOV. Game default is 60, set to -1 to disable change.", 
-                new AcceptableValueRange<int>(-1, 359)));
-            DisableFOVChange = conf.Bind<bool>(
-                "2) Visual", "DisableFOVChange", false, 
-                new ConfigDescription("Disables FOV change when sprinting", 
-                new AcceptableValueList<bool>(true, false)));
+                "2) Visual", "FOVValue", 60, 
+                new ConfigDescription("Sets a custom (vertical) FOV. Game default 60V is roughly 90H.", 
+                new AcceptableValueRange<int>(1, 180)));
             SprintFOVMultiplier = conf.Bind<double>(
-                "2) Visual", "SprintFOVMultiplier", -1, 
-                new ConfigDescription("Sets a custom sprinting FOV multiplier. Game default is 1.3, set to -1 to disable change.", 
-                new AcceptableValueRange<double>(-1, 3)));
+                "2) Visual", "SprintFOVMultiplier", 1.3, 
+                new ConfigDescription("Sets the sprinting FOV multiplier. Set to 1 to disable.", 
+                new AcceptableValueRange<double>(0.1, 2)));
             DisableSpeedlines = conf.Bind<bool>(
                 "2) Visual", "DisableSpeedlines", false, 
-                new ConfigDescription("Disables speedlines while sprinting", 
+                new ConfigDescription("Disables the speedlines effect shown when sprinting.", 
                 new AcceptableValueList<bool>(true, false)));
            DisableAutoSprinting = conf.Bind<bool>(
                 "3) Misc", "DisabledAutoSprinting", false, 
-                new ConfigDescription("Disable the AutoSprinting part of the mod and leaves only the FOV and visual changes.", 
+                new ConfigDescription("Disable the AutoSprinting part of the mod.", 
                 new AcceptableValueList<bool>(true, false)));
            DisableVisualChanges = conf.Bind<bool>(
                 "3) Misc", "DisableVisualChanges", false, 
-                new ConfigDescription("Disable the FOV and visual changes  of the mod and leaves only the AutoSprinting part.", 
+                new ConfigDescription("Disable the FOV and visual changes of the mod.", 
                 new AcceptableValueList<bool>(true, false)));
+/*
+            EntityStatesSprintingDisabled = Config.Bind<string>(
+                "3) Misc", "CustomSprintingDisabled", "",
+                new ConfigDescription("List of EntityStates that will block sprinting - example: `EntityStates.Toolbot.FireNailgun, EntityStates.Toolbot.AimStunDrone`"));
+            EntityStatesSprintingDelay = Config.Bind<string>(
+                "3) Misc", "CustomAnimationDelayed", "",
+                new ConfigDescription("List of EntityStates that will delay sprinting between attacks (using `duration` field) - example: `EntityStates.Toolbot.FireGrenadeLauncher, EntityStates.Mage.Weapon.FireFireBolt`"));
+*/
 
             RTAutoSprintEx.RT_enabled = !DisableAutoSprinting.Value;
             RTAutoSprintEx.RT_visuals = !DisableVisualChanges.Value;
@@ -149,6 +145,7 @@ namespace RTAutoSprintEx {
 
             // Captain
             RegisterSprintDisabler("EntityStates.Captain.Weapon.SetupAirstrike");
+            RegisterSprintDisabler("EntityStates.Captain.Weapon.SetupAirstrikeAlt");
             RegisterSprintDisabler("EntityStates.Captain.Weapon.SetupSupplyDrop");
 
             // Acrid
@@ -165,6 +162,21 @@ namespace RTAutoSprintEx {
                 RegisterDelayer("AltArtificerExtended.EntityStates.FireIceShard");
                 RegisterDelayer("AltArtificerExtended.EntityStates.FireLaserbolts");
                 RegisterDelayer("AltArtificerExtended.EntityStates.FireSnowBall");
+
+                // MandoGaming
+                RegisterDelayer("FMCommando.Skills.HeavyPistol2");
+                RegisterDelayer("FMCommando.Skills.BeamPistol");
+
+                //EggsSkills
+                RegisterSprintDisabler("EggsSkills.EntityStates.DirectiveRoot");
+                RegisterDelayer("EggsSkills.EntityStates.CombatShotgunEntity");
+                RegisterDelayer("EggsSkills.EntityStates.TeslaMineFireState");
+
+                //Playble Templar
+                RegisterSprintDisabler("Templar.TemplarRifleFire");
+
+                //The House
+                RegisterDelayer("HouseMod2.SkillStates.Roulette");
 
             
             // On.RoR2.CharacterBody.OnSkillActivated += (orig, self, GenericSkill) => { 
@@ -230,7 +242,7 @@ namespace RTAutoSprintEx {
                                     Vector3 moveVector = instanceFieldBodyInputs.moveVector;
                                     moveVector.y = 0f;
                                     moveVector.Normalize();
-                                    if ((Vector3.Dot(aimDirection, moveVector) <= self.GetFieldValue<float>("sprintMinAimMoveDot"))) {
+                                    if ((instanceFieldBody.bodyFlags & CharacterBody.BodyFlags.SprintAnyDirection) == CharacterBody.BodyFlags.None && (Vector3.Dot(aimDirection, moveVector) < self.GetFieldValue<float>("sprintMinAimMoveDot"))) {
                                         RT_isSprinting = false;
                                     }
                                 }
@@ -248,7 +260,7 @@ namespace RTAutoSprintEx {
             On.RoR2.CameraRigController.Update += (orig, self) => {
                 orig(self);
                 if (RTAutoSprintEx.RT_visuals) {
-                    if (CustomFOV.Value > 0 && CustomFOV.Value != self.baseFov && CustomFOV.Value < 360) self.baseFov = CustomFOV.Value;
+                    if (CustomFOV.Value >= 1 && CustomFOV.Value != self.baseFov && CustomFOV.Value <= 180) self.baseFov = CustomFOV.Value;
                 }
             };
 
@@ -275,19 +287,7 @@ namespace RTAutoSprintEx {
             IL.RoR2.CameraRigController.Update += (il) => {
                 if (RTAutoSprintEx.RT_visuals) {
                     ILCursor c = new ILCursor(il);
-                    if (DisableFOVChange.Value) {
-                        Debug.Log("RtAutoSprintEx: Disabling Sprint FOV Change:");
-                        try {
-                            c.Index = 0;
-                            c.GotoNext(
-                                x => x.MatchLdloc(0),
-                                x => x.MatchLdarg(0),
-                                x => x.MatchLdfld<RoR2.CameraRigController>("targetBody"),
-                                x => x.MatchCallvirt<RoR2.CharacterBody>("get_isSprinting")
-                            );
-                            c.RemoveRange(10);
-                        } catch (Exception ex) { Debug.LogError(ex); }
-                    } else if (!DisableFOVChange.Value && (SprintFOVMultiplier.Value != -1)) {
+                    if (SprintFOVMultiplier.Value >= 0.1 && SprintFOVMultiplier.Value <= 2.0) {
                         Debug.Log("RtAutoSprintEx: Modifying Sprint FOV Multiplier:");
                         try {
                             c.Index = 0;
@@ -344,9 +344,9 @@ namespace RTAutoSprintEx {
                 var currentState = machine.state;
                 if (currentState == null) { return duration; }
                 if (statesWhichDelaySprint.Contains(currentState.ToString())) {
-                    //try { duration = (double) currentState.GetFieldValue<float>("duration");} catch {}
-                    var stateField = currentState.GetType().GetFieldCached("duration");
-                    if (stateField != null) duration = (float)stateField.GetValue(currentState);
+                    try { duration = currentState.GetFieldValue<float>("duration");} catch {}
+                    //var stateField = currentState.GetType().GetFieldCached("duration");
+                    //if (stateField != null) duration = (float)stateField.GetValue(currentState);
                     return duration;
                 }
             }
@@ -379,8 +379,7 @@ namespace RTAutoSprintEx {
         [RoR2.ConCommand(commandName = "rt_help", flags = ConVarFlags.None, helpText = "List all RTAutoSprintEx console commands.")]
         private static void CCRTHelp(ConCommandArgs args) {
             Debug.Log("'rt_reload'. Reload the RTAutoSprintEx2.cfg configuration file.");
-            Debug.Log("'rt_sprint_enable <bool>'. Default: true. Enables/Disables the sprinting part of the mod.");
-            Debug.Log("'rt_visual_enable <bool>'. Default: true. Enables/Disables the visual part of the mod.");            
+            Debug.Log("'rt_sprint_enable <bool>'. Default: true. Enables/Disables the sprinting part of the mod.");         
             //Debug.Log("'rt_sprintcheat <bool>'. Default: false. Allows you to sprint in any direction.");
             //Debug.Log("'rt_fov <int>'. Default: 60. Valid Range: 1-359. Sets the base FOV");
             //Debug.Log("'rt_disable_fov_change <bool>'\t Default false.");
@@ -395,7 +394,7 @@ namespace RTAutoSprintEx {
         [ConCommand(commandName = "rt_reload", flags = ConVarFlags.None, helpText = "Reload the com.johnedwa.RTAutoSprintEx.cfg configuration file.")]
         private static void CCRTReload(ConCommandArgs args) {
             conf.Reload();
-            Debug.Log("Configuration reloaded");
+            Debug.Log("Configuration hopefully reloaded.");
             
         }
 
@@ -406,17 +405,6 @@ namespace RTAutoSprintEx {
                 if (Utils.TryParseBool(args[0], out bool result)) {
                     RTAutoSprintEx.RT_enabled = (bool)result;
                     Debug.Log($"{nameof(RTAutoSprintEx.RT_enabled)}={RTAutoSprintEx.RT_enabled}");
-                }
-            } catch (Exception ex) { Debug.LogError(ex); }
-        }
-
-        [ConCommand(commandName = "rt_visual_enabled", flags = ConVarFlags.None, helpText = "Enable/Disable the visual component of the mod.")]
-        private static void CCRTVisualEnable(ConCommandArgs args) {
-            try {
-                args.CheckArgumentCount(1);
-                if (Utils.TryParseBool(args[0], out bool result)) {
-                    RTAutoSprintEx.RT_enabled = (bool)result;
-                    Debug.Log($"{nameof(RTAutoSprintEx.RT_visuals)}={RTAutoSprintEx.RT_visuals}");
                 }
             } catch (Exception ex) { Debug.LogError(ex); }
         }

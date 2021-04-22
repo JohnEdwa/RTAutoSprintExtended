@@ -6,46 +6,46 @@
 
   <ItemGroup>
     <Reference Include="BepInEx">
-      <HintPath>..\\..\\Libs\BepInEx.dll</HintPath>
+      <HintPath>..\..\Libs\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="MMHOOK_Assembly-CSharp">
-      <HintPath>..\\..\\Libs\MMHOOK_Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\Libs\MMHOOK_Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="EnigmaticThunder">
-      <HintPath>..\\..\\Libs\EnigmaticThunder.dll</HintPath>
+      <HintPath>..\..\Libs\EnigmaticThunder.dll</HintPath>
     </Reference>   
     <Reference Include="R2API">
-      <HintPath>..\\..\\Libs\R2API.dll</HintPath>
+      <HintPath>..\..\Libs\R2API.dll</HintPath>
     </Reference>  
     <Reference Include="RiskOfOptions">
-      <HintPath>..\\..\\Libs\RiskOfOptions.dll</HintPath>
+      <HintPath>..\..\Libs\RiskOfOptions.dll</HintPath>
     </Reference>  
     <Reference Include="Mono.Cecil">
-      <HintPath>..\\..\\Libs\Mono.Cecil.dll</HintPath>
+      <HintPath>..\..\Libs\Mono.Cecil.dll</HintPath>
     </Reference>
     <Reference Include="MonoMod.Utils">
-      <HintPath>..\\..\\Libs\MonoMod.Utils.dll</HintPath>
+      <HintPath>..\..\Libs\MonoMod.Utils.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\\..\\Libs\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\Libs\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>..\\..\\Libs\UnityEngine.dll</HintPath>
+      <HintPath>..\..\Libs\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>..\\..\\Libs\UnityEngine.dll</HintPath>
+      <HintPath>..\..\Libs\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.Networking">
-      <HintPath>..\\..\\Libs\UnityEngine.Networking.dll</HintPath>
+      <HintPath>..\..\Libs\UnityEngine.Networking.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\\..\\Libs\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>..\..\Libs\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ParticleSystemModule">
-      <HintPath>..\\..\\Libs\UnityEngine.ParticleSystemModule.dll</HintPath>
+      <HintPath>..\..\Libs\UnityEngine.ParticleSystemModule.dll</HintPath>
     </Reference>
     <Reference Include="Rewired_Core">
-      <HintPath>..\\..\\Libs\Rewired_Core.dll</HintPath>
+      <HintPath>..\..\Libs\Rewired_Core.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

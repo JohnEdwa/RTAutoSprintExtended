@@ -1,32 +1,24 @@
 # RT AutoSprint Extended 2 | Game ver. 1.1.1.4
 
-[**For custom survivor support, see the RTAutoSprintEx Addon.**](https://thunderstore.io/package/JohnEdwa/RTAutoSprintExAddon/)
+##[**For custom survivor support, see the RTAutoSprintAddon.**](https://thunderstore.io/package/JohnEdwa/RTAutoSprintAddon/)
 
 ---
 
-## Contact
-
-Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExtended) or find me on the RoR2 modding discord (JohnEdwa#7903).
-
-## Changelog
+### Latest Patch.
 
 `2.0.0`  [2021-04-xx]
 
-* Complete rewrite of the mod. Now with possible support for custom survivors, skills and a kind-of-an-API.
-* Custom survivor patch released as its own addon.
+* Complete rewrite of the mod from scratch. Now with possible support for custom survivors, skills and a kind-of-an-API.
+* Custom survivor/skill patch [released as its own addon.](https://thunderstore.io/package/JohnEdwa/RTAutoSprintAddon/)
 * *Configuration file reset and renamed to `RTAutoSprintEx2.cfg`.* I tried to make it migrate, I failed. Sorry.
 * [known issue] Artificer flamethrower "hold-to-cast" mode isn't implemented.
 * [known issue] Disabling the mod only on certain survivors isn't possible.
 
-Rest of the changelog can be found in [CHANGELOG.MD](https://github.com/JohnEdwa/RTAutoSprintExtended/blob/master/CHANGELOG.md).
-
 # Description
 
 Removes the need to manually sprint, instead always sprint when the base game would allow you to. Hold sprint to walk and cancel skills like flamethrower.
-
-
-
 To supplement that, the sprinting crosshair and speedlines are removed, and the FOV and FOV sprint expanding can be edited.
+
 Kudos to Relocity and Thrawnarch for creating the original mod, and Rein, Harb, ThinkInvisible, Twiner son of Twine, and Aaron (among others) from the modding Discord for help.
 
 ## Features, Changes and Options.
@@ -81,3 +73,11 @@ if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.johnedwa.RTAutoSp
 
 * No ability to disable for individual survivors or skills - yet.
 * Artificer Flamethrower "Hold to Cast" is not implemented.
+
+## Changelog
+
+Full changelog can be found in [CHANGELOG.MD](https://github.com/JohnEdwa/RTAutoSprintExtended/blob/master/CHANGELOG.md).
+
+## Contact
+
+Open an issue [at the Github repo](https://github.com/JohnEdwa/RTAutoSprintExtended) or find me on the RoR2 modding discord (JohnEdwa#7903).

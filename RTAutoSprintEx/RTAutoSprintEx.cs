@@ -38,9 +38,6 @@ namespace RTAutoSprintEx {
         internal HashSet<string> stateSprintDisableList = new HashSet<string>();
         internal HashSet<string> stateAnimationDelayList = new HashSet<string>();
 
-        //internal string[] SprintDisablerList = {"EntityStates.Toolbot.ToolbotDualWield", "EntityStates.Toolbot.ToolbotDualWieldBase", "EntityStates.Toolbot.ToolbotDualWieldStart", "EntityStates.Toolbot.FireNailgun", "EntityStates.Toolbot.FireNailgun"};
-        //internal string[] SprintDelayerList = {"EntityStates.Toolbot.FireGrenadeLauncher"};
-
         // Receive SendMessages.
         public void RT_SprintDisableMessage(string state) { stateSprintDisableList.Add(state); }
         public void RT_AnimationDelayMessage(string state) { stateAnimationDelayList.Add(state); }
@@ -110,9 +107,6 @@ namespace RTAutoSprintEx {
             bool RT_walkToggle = false;
 
             SetupConfiguration();
-
-            //foreach (var item in SprintDisablerList) { RT_RegisterSprintDisable(item); }
-            //foreach (var item in SprintDelayerList) { RT_RegisterAnimationDelay(item); }
 
             // MUL-T
             RT_RegisterSprintDisable("EntityStates.Toolbot.ToolbotDualWield");
@@ -306,7 +300,8 @@ namespace RTAutoSprintEx {
         // CONSOLE COMMANDS
         [RoR2.ConCommand(commandName = "rt_help", flags = ConVarFlags.None, helpText = "List all RTAutoSprintEx console commands.")]
         private static void CCRTHelp(ConCommandArgs args) {
-            Debug.Log("'rt_reloadconf'. Reload the RTAutoSprintEx2.cfg configuration file.");
+            Debug.Log("'rt_reload_config'. Reload the RTAutoSprintEx2.cfg configuration file");
+            Debug.Log("'rt_reload_addon'. Actually part of RTAutoSprintAddon. Reloads its config and reinitializes.");
             Debug.Log("'rt_sprint_enable <bool>'. Default: true. Enables/Disables the sprinting part of the mod.");
             //Debug.Log("'rt_sprintcheat <bool>'. Default: false. Allows you to sprint in any direction.");
             Debug.Log("'rt_fov <int>'. Default: 60. Valid Range: 1-180. Sets the base FOV.");
@@ -316,7 +311,7 @@ namespace RTAutoSprintEx {
             //Debug.Log("'rt_artificer_flamethrower_toggle <bool>'.  Default: true.");
         }
 
-        [ConCommand(commandName = "rt_reloadconf", flags = ConVarFlags.None, helpText = "Reload the com.johnedwa.RTAutoSprintEx.cfg configuration file.")]
+        [ConCommand(commandName = "rt_reload_config", flags = ConVarFlags.None, helpText = "Reload the RTAutoSprintEx2.cfg configuration file")]
         private static void CCRTReload(ConCommandArgs args) {
             conf.Reload();
             Debug.Log("Configuration hopefully reloaded. DisableSpeedlines and DisableSprintingCrosshair will require a game restart.");
@@ -398,22 +393,10 @@ namespace RTAutoSprintEx {
                  "3) Misc", "DisableVisualChanges", false,
                  new ConfigDescription("Disable the FOV and visual changes of the mod.",
                  new AcceptableValueList<bool>(true, false)));
-            /*
-                        EntityStatesSprintingDisabled = Config.Bind<string>(
-                            "3) Misc", "CustomSprintingDisabled", "",
-                            new ConfigDescription("List of EntityStates that will block sprinting - example: `EntityStates.Toolbot.FireNailgun, EntityStates.Toolbot.AimStunDrone`"));
-                        EntityStatesSprintingDelay = Config.Bind<string>(
-                            "3) Misc", "CustomAnimationDelayed", "",
-                            new ConfigDescription("List of EntityStates that will delay sprinting between attacks (using `duration` field) - example: `EntityStates.Toolbot.FireGrenadeLauncher, EntityStates.Mage.Weapon.FireFireBolt`"));
-            */
 
             RTAutoSprintEx.RT_enabled = !DisableAutoSprinting.Value;
             RTAutoSprintEx.RT_visuals = !DisableVisualChanges.Value;
-
             if (!RTAutoSprintEx.RT_enabled && !RTAutoSprintEx.RT_visuals) Logger.LogInfo("DisabledAutoSprinting and DisableVisualChanges both True, the mod literally does nothing now.");
-
-            //CustomSurvivors = conf.Bind<string>("", "CustomSurvivorDisable", "", new ConfigDescription("List of custom survivors names that are disabled. The name is printed to the chat and log at spawn. Example: 'CustomSurvivorDisable: = SNIPER_NAME AKALI'"));
-            //ArtificerFlamethrowerToggle = conf.Bind<bool>("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
         } // End of SetupConfiguration()
     } // End of class RTAutoSprintEx
 } // End of Namespace

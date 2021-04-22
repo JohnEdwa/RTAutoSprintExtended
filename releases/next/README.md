@@ -1,16 +1,15 @@
 # RT AutoSprint Extended 2 | Game ver. 1.1.1.4
 
-##[**For custom survivor support, see the RTAutoSprintAddon.**](https://thunderstore.io/package/JohnEdwa/RTAutoSprintAddon/)
+## [**For custom survivor/skill support, see RTAutoSprintAddon.**](https://thunderstore.io/package/JohnEdwa/RTAutoSprintAddon/)
 
 ---
 
-### Latest Patch.
+### Latest changes
 
 `2.0.0`  [2021-04-xx]
 
-~~* Plugin renamed to `fi.johnedwa.RTAutoSprintEx` because I finally registered the domain.~~
 * Complete rewrite of the mod from scratch. Now with possible support for custom survivors, skills and a kind-of-an-API.
-* Custom survivor/skill patch [released as its own addon.](https://thunderstore.io/package/JohnEdwa/RTAutoSprintAddon/)
+* Custom survivor/skill patch [released as its own addon for compatibility reasons.](https://thunderstore.io/package/JohnEdwa/RTAutoSprintAddon/)
 * *Configuration file reset and renamed to `RTAutoSprintEx2.cfg`.* I tried to make it migrate, I failed. Sorry.
 * [known issue] Artificer flamethrower "hold-to-cast" mode isn't implemented.
 * [known issue] Disabling the mod only on certain survivors isn't possible.

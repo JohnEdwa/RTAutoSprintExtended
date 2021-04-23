@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-      <Reference Include="BepInEx">
+    <Reference Include="BepInEx">
       <HintPath>..\..\Libs\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="MMHOOK_Assembly-CSharp">
@@ -14,12 +14,12 @@
     <Reference Include="EnigmaticThunder">
       <HintPath>..\..\Libs\EnigmaticThunder.dll</HintPath>
     </Reference>   
-
     <Reference Include="R2API">
       <HintPath>..\..\Libs\R2API.dll</HintPath>
     </Reference>  
-
-
+    <Reference Include="RiskOfOptions">
+      <HintPath>..\..\Libs\RiskOfOptions.dll</HintPath>
+    </Reference>  
     <Reference Include="Mono.Cecil">
       <HintPath>..\..\Libs\Mono.Cecil.dll</HintPath>
     </Reference>
@@ -32,7 +32,7 @@
     <Reference Include="UnityEngine">
       <HintPath>..\..\Libs\UnityEngine.dll</HintPath>
     </Reference>
-        <Reference Include="UnityEngine">
+    <Reference Include="UnityEngine">
       <HintPath>..\..\Libs\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.Networking">
@@ -47,7 +47,5 @@
     <Reference Include="Rewired_Core">
       <HintPath>..\..\Libs\Rewired_Core.dll</HintPath>
     </Reference>
-
   </ItemGroup>
-
 </Project>

@@ -1,413 +1,401 @@
-﻿using System;
+/*
+THINGS TO DO:
+    Risk of Options 2 config
+    Artificer Hold To Cast
+    HoldSprintToWalk and walking auto-cancelling casts.
+*/
+
+//#define DEBUGGY
+
+using System;
 using System.Reflection;
+using System.Collections.Generic;
 using BepInEx;
 using BepInEx.Configuration;
 using Rewired;
 using UnityEngine;
+using R2API.Utils;
 using RoR2;
+using R2API;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using R2API.Utils;
+using EntityStates;
 
 namespace RTAutoSprintEx {
+    [BepInPlugin("com.johnedwa.RTAutoSprintEx", "RTAutoSprintEx", "2.0.0")]
+    [BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
+    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync)]
+    [R2APISubmoduleDependency(nameof(CommandHelper))]
 
-[BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
-[NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-[R2APISubmoduleDependency(nameof(CommandHelper))]
+    public class RTAutoSprintEx : BaseUnityPlugin {
+        private static bool RT_enabled = true;
+        private static bool RT_visuals = true;
 
-[BepInPlugin(GUID, NAME, VERSION)]
+#if DEBUGGY
+        internal HashSet<string> knownEntityStates = new HashSet<string>();
+#endif
+        internal HashSet<string> stateSprintDisableList = new HashSet<string>();
+        internal HashSet<string> stateAnimationDelayList = new HashSet<string>();
 
-public class RTAutoSprintEx : BaseUnityPlugin {
-	public const string
-		NAME = "RTAutoSprintEx",
-		GUID = "com.johnedwa." + NAME,
-		VERSION = "1.3.3";
+        // Receive SendMessages.
+        public void RT_SprintDisableMessage(string state) { stateSprintDisableList.Add(state); }
+        public void RT_AnimationDelayMessage(string state) { stateAnimationDelayList.Add(state); }
 
-	public static ConfigEntry<string> CustomSurvivors { get; set; }
-	public static ConfigEntry<bool> HoldSprintToWalk { get; set; }
-	public static ConfigEntry<bool> SprintInAnyDirection { get; set; }
-	public static ConfigEntry<bool> ToggleAutoSprint { get; set; }
-	public static ConfigEntry<bool> ArtificerFlamethrowerToggle { get; set; }	
-	public static ConfigEntry<bool> DisableSprintingCrosshair { get; set; }
-	public static ConfigEntry<double> AnimationCancelDelay { get; set; }
-	public static ConfigEntry<bool> DisableFOVChange { get; set; }
-	public static ConfigEntry<bool> DisableSpeedlines { get; set; }
-	public static ConfigEntry<int> CustomFOV { get; set; }
-	public static ConfigEntry<double> SprintFOVMultiplier { get; set; }
+        // Registers EntityStates as sprint delayers    
+        private bool RT_RegisterAnimationDelay(string state) {
+#if DEBUGGY
+            Debug.LogWarning("Sprint delay added for : " + state);
+#endif
+            return stateAnimationDelayList.Add(state);
+        }
 
-	private static double RT_num;
-	private static bool RT_enabled;
-	private static bool RT_isSprinting;
-	private static bool RT_disableToggle;
-	private static bool RT_cancelWithSprint;
-	private static bool RT_tempDisable;
-	private static bool RT_toolDualWield;
-	private string[] RT_CustomSurvivors;
-	private bool RT_CustomSurvivorDisable;
+        // Registers EntityStates as sprint disablers
+        private bool RT_RegisterSprintDisable(string state) {
+#if DEBUGGY
+            Debug.LogWarning("Sprint disabled for : " + state);
+#endif
+            return stateSprintDisableList.Add(state);
+        }
 
-	public void Awake() {
-
-		RTAutoSprintEx.RT_num = 0.0;
-		RTAutoSprintEx.RT_enabled = true;
-		RTAutoSprintEx.RT_disableToggle = false;
-		RTAutoSprintEx.RT_isSprinting = false;
-		RTAutoSprintEx.RT_cancelWithSprint = false;
-		RTAutoSprintEx.RT_toolDualWield = false;
-		RTAutoSprintEx.RT_tempDisable = false;
-		RT_CustomSurvivorDisable = false;
-		bool firstrun = true;
-
-	// Configuration
-		R2API.Utils.CommandHelper.AddToConsoleWhenReady();
-		
-		CustomSurvivors = Config.Bind<string>("", "CustomSurvivorDisable", "", new ConfigDescription("List of custom survivors names that are disabled. The name is printed to the chat and log at spawn. Example: 'CustomSurvivorDisable: = SNIPER_NAME AKALI'"));
-		ArtificerFlamethrowerToggle = Config.Bind<bool>("", "ArtificerFlamethrowerToggle", true, new ConfigDescription("Artificer: Sprinting cancels the flamethrower, therefore it either has to disable AutoSprint for a moment, or you need to keep the button held down\ntrue: Flamethrower is a toggle, cancellable by hitting Sprint or casting M2\nfalse: Flamethrower is cast when the button is held down (binding to side mouse button recommended).", new AcceptableValueList<bool>(true, false)));
-		AnimationCancelDelay = Config.Bind<double>("", "AnimationCancelDelay", 0.2, new ConfigDescription("Some skills can be animation cancelled by starting to sprint. This value sets how long to wait.", new AcceptableValueRange<double>(0.0, 1.0)));
-		HoldSprintToWalk = Config.Bind<bool>("", "HoldSprintToWalk", true, new ConfigDescription("Holding the Sprint key temporarily disables auto-sprinting, making you walk. Overrided by ToggleAutoSprint.", new AcceptableValueList<bool>(true, false)));
-		ToggleAutoSprint = Config.Bind<bool>("", "ToggleAutoSprint", false, new ConfigDescription("Pressing the Sprint key toggles between walking and auto-sprinting. Overrides HoldSprintToWalk", new AcceptableValueList<bool>(true, false)));
-		DisableSprintingCrosshair = Config.Bind<bool>("", "DisableSprintingCrosshair", true, new ConfigDescription("Disables the (useless) sprinting crosshair.", new AcceptableValueList<bool>(true, false)));
-		CustomFOV = Config.Bind<int>("", "FOVValue", 70, new ConfigDescription("Change FOV. Game default is 60, set to -1 to disable change.", new AcceptableValueRange<int>(-1, 359)));
-        DisableFOVChange = Config.Bind<bool>("", "DisableFOVChange", false, new ConfigDescription("Disables FOV change when sprinting", new AcceptableValueList<bool>(true, false)));
-		SprintFOVMultiplier = Config.Bind<double>("", "SprintFOVMultiplier", 1.1, new ConfigDescription("Sets a custom sprinting FOV multiplier. Game default is 1.3, set to -1 to disable change.", new AcceptableValueRange<double>(-1, 3)));
-		DisableSpeedlines = Config.Bind<bool>("", "DisableSpeedlines", false, new ConfigDescription("Disables speedlines while sprinting", new AcceptableValueList<bool>(true, false)));
-		SprintInAnyDirection = Config.Bind<bool>("", "SprintInAnyDirection", false, new ConfigDescription("Cheat, Allows you to sprint in any direction.", new AcceptableValueList<bool>(true, false)));
-
-	// Bandit
-		//Shotgun
-		On.EntityStates.Bandit2.Weapon.Bandit2FirePrimaryBase.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
-		//Revolver shot
-		On.EntityStates.Bandit2.Weapon.BasePrepSidearmRevolverState.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true;};
-		On.EntityStates.Bandit2.Weapon.BaseSidearmState.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false;};
-		On.EntityStates.Bandit2.Weapon.BaseFireSidearmRevolverState.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false;};
-
-	// Artificer
-		//Flamethrower
-		On.EntityStates.Mage.Weapon.Flamethrower.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
-		On.EntityStates.Mage.Weapon.Flamethrower.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
-		// Ice Wall
-		On.EntityStates.Mage.Weapon.PrepWall.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
-		On.EntityStates.Mage.Weapon.PrepWall.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
-		// Bolt logic
-		On.EntityStates.Mage.Weapon.FireFireBolt.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
-		On.EntityStates.Mage.Weapon.FireLaserbolt.OnEnter += (orig, self) => {  orig(self);  RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
-
-	// Engineer
-		// Mines
-		On.EntityStates.Engi.EngiWeapon.FireMines.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
-		On.EntityStates.Engi.EngiWeapon.FireSeekerGrenades.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
-		// Harpoon
-		On.EntityStates.Engi.EngiMissilePainter.Paint.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true;};
-		On.EntityStates.Engi.EngiMissilePainter.Paint.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
-
-	// MUL-T
-		//Nailgun
-		On.EntityStates.Toolbot.FireNailgun.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_tempDisable = true; };
-		On.EntityStates.Toolbot.FireNailgun.OnExit += (orig, self) => { orig(self); if (!RT_toolDualWield) RTAutoSprintEx.RT_tempDisable = false; };
-		// Scrap Launcher
-		On.EntityStates.Toolbot.FireGrenadeLauncher.PlayAnimation += (orig, self, duration) => { orig(self, duration); RTAutoSprintEx.RT_num = -duration;};
-		// Stun Grenade (M2)
-		On.EntityStates.Toolbot.AimGrenade.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
-		On.EntityStates.Toolbot.RecoverAimStunDrone.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
-		// Workaround for the stance swap issue
-		On.EntityStates.Toolbot.StartToolbotStanceSwap.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
-		// UNLIMITED POWAH
-		On.EntityStates.Toolbot.ToolbotDualWield.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = true; RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
-		On.EntityStates.Toolbot.ToolbotDualWieldBase.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = true;  RTAutoSprintEx.RT_tempDisable = true; };
-		On.EntityStates.Toolbot.ToolbotDualWieldStart.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = true;  RTAutoSprintEx.RT_tempDisable = true; };
-
-		On.EntityStates.Toolbot.ToolbotDualWield.OnExit += (orig, self) => { orig(self); RT_toolDualWield = false; RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; RTAutoSprintEx.RT_num = -0.05;};
-		On.EntityStates.Toolbot.ToolbotDualWieldEnd.OnEnter += (orig, self) => { orig(self); RT_toolDualWield = false;  RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; RTAutoSprintEx.RT_num = -0.05;};		
-		
-	// REX workaround logic
-		On.EntityStates.Treebot.Weapon.FireSyringe.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
-
-		On.EntityStates.Treebot.Weapon.AimMortar.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
-		On.EntityStates.Treebot.Weapon.AimMortar.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false;};
-		On.EntityStates.Treebot.Weapon.AimMortar2.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true;};
-		On.EntityStates.Treebot.Weapon.AimMortar2.OnProjectileFiredLocal += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false;};
-
-	// Acrid M1 delay to help with the animation cancelling issue
-		On.EntityStates.Croco.Slash.PlayAnimation += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
-
-	// Commando M1 delay
-		On.EntityStates.Commando.CommandoWeapon.FirePistol2.OnEnter += (orig, self) => {  orig(self);  RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
-
-	// Loader M1 Delay
-		On.EntityStates.Loader.SwingComboFist.PlayAnimation += (orig, self) => { orig(self); RTAutoSprintEx.RT_num = -self.GetFieldValue<float>("duration"); };
-
-	// Captain
-		On.EntityStates.Captain.Weapon.SetupAirstrike.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
-		On.EntityStates.Captain.Weapon.SetupAirstrike.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
-		On.EntityStates.Captain.Weapon.SetupSupplyDrop.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
-		On.EntityStates.Captain.Weapon.SetupSupplyDrop.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
-        On.EntityStates.Captain.Weapon.SetupAirstrikeAlt.OnEnter += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = true; RTAutoSprintEx.RT_tempDisable = true; };
-        On.EntityStates.Captain.Weapon.SetupAirstrikeAlt.OnExit += (orig, self) => { orig(self); RTAutoSprintEx.RT_cancelWithSprint = false; RTAutoSprintEx.RT_tempDisable = false; };
-
-	// This could be eventually used to do all the disabling stuff without touching the skills themselves, I think.
- 		//On.RoR2.CharacterBody.OnSkillActivated += (orig, self, GenericSkill) => {  orig(self, GenericSkill); Debug.Log( GenericSkill.skillDef.skillName + " | Index: ");};
-	
-	On.RoR2.PlayerCharacterMasterController.OnEnable += (orig, self) => { orig(self); firstrun = true;};
-
-	// Sprinting logic
-		On.RoR2.PlayerCharacterMasterController.FixedUpdate += delegate(On.RoR2.PlayerCharacterMasterController.orig_FixedUpdate orig, RoR2.PlayerCharacterMasterController self) {
-
-			orig.Invoke(self);
-			bool skillsAllowAutoSprint = false;
-			bool knownSurvivor = true;
-			RoR2.InputBankTest instanceFieldBodyInputs = self.GetInstanceField<RoR2.InputBankTest>("bodyInputs");
-			if (instanceFieldBodyInputs) {
-				RoR2.NetworkUser networkUser = self.networkUser;
-				if (networkUser && networkUser.localUser != null && !networkUser.localUser.isUIFocused) {
-					RoR2.CharacterBody instanceFieldBody = self.GetInstanceField<RoR2.CharacterBody>("body");
-					if (instanceFieldBody && RTAutoSprintEx.RT_enabled) {
-						Player inputPlayer = networkUser.localUser.inputPlayer;
-						RTAutoSprintEx.RT_isSprinting = instanceFieldBody.isSprinting;
-						switch(instanceFieldBody.baseNameToken){
-								case "COMMANDO_BODY_NAME":
-								case "HUNTRESS_BODY_NAME":
-								case "MERC_BODY_NAME":
-								case "LOADER_BODY_NAME":
-								case "CROCO_BODY_NAME":
-									skillsAllowAutoSprint = true;
-									break;
-								case "ENGI_BODY_NAME":	
-								case "TREEBOT_BODY_NAME":
-								case "CAPTAIN_BODY_NAME":
-								case "BANDIT2_BODY_NAME":
-									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
-									break;
-								case "TOOLBOT_BODY_NAME":
-									if (!RT_toolDualWield) skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
-									break;								
-								case "MAGE_BODY_NAME":
-									// If TOGGLE, just follow tempDisable, if HOLD disable when button released
-									if (RT_cancelWithSprint && !ArtificerFlamethrowerToggle.Value && !inputPlayer.GetButton("SpecialSkill")) RTAutoSprintEx.RT_tempDisable = false;
-									skillsAllowAutoSprint = (!RTAutoSprintEx.RT_tempDisable);
-									break;
-								default:
-									if (firstrun) {
-										firstrun = false;
-										RT_CustomSurvivorDisable = false;
-										char[] delimiterChars = { ' ', ',', '.', ':', '\t' };
-										RT_CustomSurvivors = CustomSurvivors.Value.Split(delimiterChars);
-
-										if (RT_CustomSurvivors != null) {
-											foreach (var survivor in RT_CustomSurvivors)  {
-												if (instanceFieldBody.baseNameToken == survivor) {
-													RoR2.Chat.AddMessage("Custom Survivor Disable for '" + survivor + "' was found and RTAutosprint was disabled.");
-													RT_CustomSurvivorDisable = true;
-													break;
-												}
-											}
-										}
-										if (!RT_CustomSurvivorDisable) { RoR2.Chat.AddMessage("Custom Survivor'" + instanceFieldBody.baseNameToken + "' detected."); }
-									}
-
-									if (RT_CustomSurvivorDisable) {knownSurvivor = false;};
-									if (knownSurvivor) skillsAllowAutoSprint = true;
-									break;
-							}
-						if (knownSurvivor) {
-							if (!RTAutoSprintEx.RT_isSprinting && RTAutoSprintEx.RT_num >= 0.1) {
-								RTAutoSprintEx.RT_isSprinting = skillsAllowAutoSprint;
-								RTAutoSprintEx.RT_num = 0.0;
-							}
-							// Animation cancelling after stopping attack
-							if (RTAutoSprintEx.RT_num < -(AnimationCancelDelay.Value)
-								&& !inputPlayer.GetButton("PrimarySkill") 
-								&& !inputPlayer.GetButton("SecondarySkill") 
-								&& !inputPlayer.GetButton("SpecialSkill")
-								&& !inputPlayer.GetButton("UtilitySkill")) 
-								{ RTAutoSprintEx.RT_num = -(AnimationCancelDelay.Value); }
-							if (!RTAutoSprintEx.RT_isSprinting) RTAutoSprintEx.RT_num += (double)Time.deltaTime;
-
-							// Disable sprinting if the movement angle is too large
-							if (RTAutoSprintEx.RT_isSprinting) {
-								Vector3 aimDirection = instanceFieldBodyInputs.aimDirection;
-								aimDirection.y = 0f;
-								aimDirection.Normalize();
-								Vector3 moveVector = instanceFieldBodyInputs.moveVector;
-								moveVector.y = 0f;
-								moveVector.Normalize();
-								if ((Vector3.Dot(aimDirection, moveVector) < self.GetFieldValue<float>("sprintMinAimMoveDot")) && !RTAutoSprintEx.SprintInAnyDirection.Value) {
-									RTAutoSprintEx.RT_isSprinting = false;
-								}
-							} 
-
-							// Walking logic.
-							if (inputPlayer.GetButton("Sprint")) {
-								RTAutoSprintEx.RT_num = 1.0; 
-								if (HoldSprintToWalk.Value && !ToggleAutoSprint.Value) RTAutoSprintEx.RT_isSprinting = false;
-								if (RT_cancelWithSprint) RTAutoSprintEx.RT_isSprinting = true;
-							}
-
-							if (ToggleAutoSprint.Value && inputPlayer.GetButtonDown("Sprint")){
-								RTAutoSprintEx.RT_disableToggle = !RTAutoSprintEx.RT_disableToggle;
-							}
-						}
-					}
-				}
-
-				if (instanceFieldBodyInputs && RTAutoSprintEx.RT_enabled && knownSurvivor) {
-					if (RTAutoSprintEx.RT_disableToggle) RTAutoSprintEx.RT_isSprinting = false;
-					instanceFieldBodyInputs.sprint.PushState(RTAutoSprintEx.RT_isSprinting);
-				}
-			}
-		}; // End of FixedUpdate
-
-	// Custom FOV
-        On.RoR2.CameraRigController.Update += (orig, self) => {
-            orig(self);
-			if (CustomFOV.Value > 0 && CustomFOV.Value != self.baseFov && CustomFOV.Value < 360) self.baseFov = CustomFOV.Value;
-        };
-
-	// Sprinting Crosshair
-		IL.RoR2.UI.CrosshairManager.UpdateCrosshair += (il) => {
-			ILCursor c = new ILCursor(il);
-			if (DisableSprintingCrosshair.Value) {
-				Debug.Log("RtAutoSprintEx: Disabling sprinting crosshair:");
-				try {
-					c.Index = 0;
-					c.GotoNext ( 
-						MoveType.After, 
-						x => x.MatchCallvirt<CharacterBody>("get_isSprinting")
-					);
-					c.Emit(OpCodes.Ldc_I4, 0);
-					c.Emit(OpCodes.And);
-				} catch (Exception ex) { Debug.LogError(ex); }
-			}
-		};		
-
-		//Sprinting FOV change and Speedlines.
-		IL.RoR2.CameraRigController.Update += (il) => {
-            ILCursor c = new ILCursor(il);
-            if (DisableFOVChange.Value) {
-				Debug.Log("RtAutoSprintEx: Disabling Sprint FOV Change:");
-				try {
-					c.Index = 0;
-					c.GotoNext(
-						x => x.MatchLdloc(0),
-						x => x.MatchLdarg(0),
-						x => x.MatchLdfld <RoR2.CameraRigController>("targetBody"),
-						x => x.MatchCallvirt<RoR2.CharacterBody>("get_isSprinting")
-					);
-					c.RemoveRange(10);
-				} catch (Exception ex) { Debug.LogError(ex); }
-            } else if (!DisableFOVChange.Value && (SprintFOVMultiplier.Value != -1)) {
-				Debug.Log("RtAutoSprintEx: Modifying Sprint FOV Multiplier:");
-				try {
-					c.Index = 0;
-					c.GotoNext(
-						x => x.MatchLdloc(0),
-						x => x.MatchLdarg(0),
-						x => x.MatchLdfld <RoR2.CameraRigController>("targetBody"),
-						x => x.MatchCallvirt<RoR2.CharacterBody>("get_isSprinting")
-					);
-					c.Index += 7;
-					c.Next.Operand = (float)SprintFOVMultiplier.Value;
-				} catch (Exception ex) { Debug.LogError(ex); }
-        	}
-            if (DisableSpeedlines.Value) {
-				Debug.Log("RtAutoSprintEx: Disabling Speedlines:");
-				try {
-					c.Index = 0;
-					c.GotoNext(
-						x => x.MatchLdarg(0),
-						x => x.MatchLdfld<RoR2.CameraRigController>("sprintingParticleSystem"),
-						x => x.MatchCallvirt<UnityEngine.ParticleSystem>("get_isPlaying") 
-					);
-					c.RemoveRange(3);
-					c.Emit(OpCodes.Ldc_I4, 1);
-				} catch (Exception ex) { Debug.LogError(ex); }
+        // Checks if the duration value exists.
+        private double SprintDelayTime(CharacterBody targetBody) {
+            float duration = 0.0f;
+            EntityStateMachine[] stateMachines;
+            stateMachines = targetBody.GetComponents<EntityStateMachine>();
+            foreach (EntityStateMachine machine in stateMachines) {
+                var currentState = machine.state;
+                if (currentState == null) { return duration; }
+                if (stateAnimationDelayList.Contains(currentState.ToString())) {
+                    try { duration = currentState.GetFieldValue<float>("duration"); } catch { }
+                    //var stateField = currentState.GetType().GetFieldCached("duration");
+                    //if (stateField != null) duration = (float)stateField.GetValue(currentState);
+                    return duration;
+                }
             }
-			Debug.Log("RtAutoSprintEx: CameraRigController.Update IL edits done.");
-        };
-	} // End of Awake
+            return duration;
+        }
 
+        // Checks if an EntityState blocks sprinting
+        private bool ShouldSprintBeDisabledOnThisBody(CharacterBody targetBody) {
+            EntityStateMachine[] stateMachines;
+            stateMachines = targetBody.GetComponents<EntityStateMachine>();
+            bool isSprintBlocked = false;
+            foreach (EntityStateMachine machine in stateMachines) {
+                var currentState = machine.state;
+                if (currentState == null) { return false; }
+#if DEBUGGY
+                if (!knownEntityStates.Contains(currentState.ToString())) {
+                    knownEntityStates.Add(currentState.ToString());
+                    Debug.LogError("List of Known EntityStates;");
+                    foreach (var item in knownEntityStates) {
+                        Debug.Log(item);
+                    }
+                }
+#endif
+                if (stateSprintDisableList.Contains(currentState.ToString())) { isSprintBlocked = true; }
+            }
+            return isSprintBlocked;
+        }
 
-	// Console Commands
-	[RoR2.ConCommand(commandName = "rt_help", flags = ConVarFlags.ExecuteOnServer, helpText = "List all RTAutoSprintEx console commands.")]
-	private static void cc_rt_help(ConCommandArgs args) {
-		Debug.Log("'rt_enabled <bool>'. Default: true. Enables/Disables the sprinting part of the mod.");
-		Debug.Log("'rt_sprintcheat <bool>'. Default: false. Allows you to sprint in any direction.");
-		Debug.Log("'rt_fov <int>'. Default: 60. Valid Range: 1-359. Sets the base FOV");
-		//Debug.Log("'rt_disable_fov_change <bool>'\t Default false.");
-		//Debug.Log("'rt_fov_multiplier <float>'\t Default: 1,3. Valid Range: 0.5-2.0. How much the camera FOV changes when sprinting.");
-		//Debug.Log("'rt_disable_speedlines <bool>'\t Default: false.");
-		//Debug.Log("'rt_disable_sprinting_crosshair <bool>'\t Default: true.");
-		Debug.Log("'rt_artificer_flamethrower_toggle <bool>'.  Default: true.");
-		Debug.Log("Rest of the options aren't currently run-time editable, you have to change them in the config:");
-		Debug.Log("AnimationCancelDelay, HoldSprintToWalk, DisableSprintingCrosshair, DisableSpeedlines, DisableFOVChange, SprintFOVMultiplier");
-	}
+        public void Awake() {
+            R2API.Utils.CommandHelper.AddToConsoleWhenReady();
+            double RT_timer = 0.0;
+            double RT_animationCancelDelay = 0.15;
+            bool RT_isSprinting = false;
+            bool RT_animationCancel = false;
+            bool RT_walkToggle = false;
 
-	[RoR2.ConCommand(commandName = "rt_enabled", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(bool)enabled")]
-	private static void cc_rt_enabled(ConCommandArgs args) {
-		try {
-			args.CheckArgumentCount(1);
-			if (TryParseBool(args[0], out bool result)) {
-				RTAutoSprintEx.RT_enabled = (bool)result;
-				Debug.Log($"{nameof(RTAutoSprintEx.RT_enabled)}={RTAutoSprintEx.RT_enabled}");
-			}	
-		} catch (Exception ex) { Debug.LogError(ex); }
-	}
+            SetupConfiguration();
 
-	[RoR2.ConCommand(commandName = "rt_sprintcheat", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(bool)enabled")]
-	private static void cc_rt_sprintcheat(ConCommandArgs args) {
-		try {
-			args.CheckArgumentCount(1);
-			if (TryParseBool(args[0], out bool result)) {
-				RTAutoSprintEx.SprintInAnyDirection.Value = (bool)result;
-				Debug.Log($"{nameof(RTAutoSprintEx.SprintInAnyDirection.Value)}={RTAutoSprintEx.SprintInAnyDirection.Value}");
-			}	
-		} catch (Exception ex) { Debug.LogError(ex); }
-	}
+            // MUL-T
+            RT_RegisterSprintDisable("EntityStates.Toolbot.ToolbotDualWield");
+            RT_RegisterSprintDisable("EntityStates.Toolbot.ToolbotDualWieldBase");
+            RT_RegisterSprintDisable("EntityStates.Toolbot.ToolbotDualWieldStart");
+            RT_RegisterSprintDisable("EntityStates.Toolbot.FireNailgun");
+            RT_RegisterSprintDisable("EntityStates.Toolbot.AimStunDrone");
+            RT_RegisterAnimationDelay("EntityStates.Toolbot.FireGrenadeLauncher");
 
-	[RoR2.ConCommand(commandName = "rt_fov", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(int)fov")]
-	private static void cc_rt_fov (ConCommandArgs args) {
-		try {
-			args.CheckArgumentCount(1);
-			int? value = args.TryGetArgInt(0);
-			if (value.HasValue) {		
-				CustomFOV.Value = (int)value;
-				Debug.Log($"{nameof(CustomFOV)}={value}");	
-			}
-		} catch (Exception ex) { Debug.LogError(ex); }
-	}
+            // Artificer
+            RT_RegisterSprintDisable("EntityStates.Mage.Weapon.Flamethrower");
+            RT_RegisterSprintDisable("EntityStates.Mage.Weapon.PrepWall");
+            RT_RegisterAnimationDelay("EntityStates.Mage.Weapon.FireFireBolt");
+            RT_RegisterAnimationDelay("EntityStates.Mage.Weapon.FireLaserbolt");
 
-	[RoR2.ConCommand(commandName = "rt_artificer_flamethrower_toggle", flags = ConVarFlags.ExecuteOnServer, helpText = "args[0]=(bool)enabled")]
-	private static void cc_rt_artificer_flamethrower_toggle(ConCommandArgs args) {
-		try {
-			args.CheckArgumentCount(1);
-			if (TryParseBool(args[0], out bool result)) {	
-				ArtificerFlamethrowerToggle.Value = result;
-				Debug.Log($"{nameof(ArtificerFlamethrowerToggle)}={result}");
-			}	
-		} catch (Exception ex) { Debug.LogError(ex); }
-	}	
+            // Bandit
+            RT_RegisterSprintDisable("EntityStates.Bandit2.Weapon.BasePrepSidearmRevolverState");
+            RT_RegisterSprintDisable("EntityStates.Bandit2.Weapon.PrepSidearmResetRevolver");
+            RT_RegisterSprintDisable("EntityStates.Bandit2.Weapon.PrepSidearmSkullRevolver");
+            RT_RegisterAnimationDelay("EntityStates.Bandit2.Weapon.Bandit2FirePrimaryBase");
+            RT_RegisterAnimationDelay("EntityStates.Bandit2.Weapon.FireShotgun2");
+            RT_RegisterAnimationDelay("EntityStates.Bandit2.Weapon.Bandit2FireRifle");
 
+            // Engineer
+            RT_RegisterSprintDisable("EntityStates.Engi.EngiMissilePainter.Paint");
+            RT_RegisterAnimationDelay("EntityStates.Engi.EngiWeapon.FireMines");
+            RT_RegisterAnimationDelay("EntityStates.Engi.EngiWeapon.FireSeekerGrenades");
 
-internal static bool TryParseBool(string input, out bool result){
-    if(bool.TryParse(input,out result)){return true;}
-	if(int.TryParse(input,out int val)) { result = val > 0 ? true : false; return true; } return false;}
+            // Rex
+            RT_RegisterSprintDisable("EntityStates.Treebot.Weapon.AimMortar");
+            RT_RegisterSprintDisable("EntityStates.Treebot.Weapon.AimMortar2");
+            RT_RegisterSprintDisable("EntityStates.Treebot.Weapon.AimMortarRain");
+            RT_RegisterAnimationDelay("EntityStates.Treebot.Weapon.FireSyringe");
 
-} // End of class RTAutoSprintEx
+            // Captain
+            RT_RegisterSprintDisable("EntityStates.Captain.Weapon.SetupAirstrike");
+            RT_RegisterSprintDisable("EntityStates.Captain.Weapon.SetupAirstrikeAlt");
+            RT_RegisterSprintDisable("EntityStates.Captain.Weapon.SetupSupplyDrop");
 
-// Utilities
-	public static class Utils
-	{
-		public static T GetInstanceField<T>(this object instance, string fieldName)
-		{
-			BindingFlags bindingAttr = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-			FieldInfo field = instance.GetType().GetField(fieldName, bindingAttr);
-			return (T)((object)field.GetValue(instance));
-		}
+            // Acrid
+            RT_RegisterAnimationDelay("EntityStates.Croco.Slash");
 
-		public static void SetInstanceField<T>(this object instance, string fieldName, T value)
-		{
-			BindingFlags bindingAttr = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-			FieldInfo field = instance.GetType().GetField(fieldName, bindingAttr);
-			field.SetValue(instance, value);
-		}
-	}
+            // Commando
+            RT_RegisterAnimationDelay("EntityStates.Commando.CommandoWeapon.FirePistol2");
 
+            // Loader
+            RT_RegisterAnimationDelay("EntityStates.Loader.SwingComboFist");
+
+            // On.RoR2.CharacterBody.OnSkillActivated += (orig, self, GenericSkill) => { 
+            //     orig(self, GenericSkill); 
+            //     Debug.Log( 
+            //             GenericSkill.skillDef.skillName  + " | "          // FireFirebolt
+            //         + GenericSkill + " | "                                  // MageBody(Clone) (RoR2.GenericSkill)
+            //         + GenericSkill.characterBody + " | "                // MageBody(Clone) (RoR2.CharacterBody)
+            //         + GenericSkill.characterBody.name + " | "           // MageBody(Clone)
+            //         + GenericSkill.characterBody.master + " | "         // CommandoMaster(Clone) (RoR2.CharacterMaster)
+            //         + GenericSkill.characterBody.masterObject + " | "   // CommandoMaster(Clone) (UnityEngine.GameObject)           
+            //         );
+            // }; 
+
+            On.RoR2.PlayerCharacterMasterController.FixedUpdate += delegate (On.RoR2.PlayerCharacterMasterController.orig_FixedUpdate orig, RoR2.PlayerCharacterMasterController self) {
+                orig.Invoke(self);
+                if (RT_enabled) {
+                    RoR2.InputBankTest instanceFieldBodyInputs = self.GetInstanceField<RoR2.InputBankTest>("bodyInputs");
+                    if (instanceFieldBodyInputs) {
+                        if (self.networkUser && self.networkUser.localUser != null && !self.networkUser.localUser.isUIFocused) {
+                            RoR2.CharacterBody instanceFieldBody = self.GetInstanceField<RoR2.CharacterBody>("body");
+                            if (instanceFieldBody) {
+                                Player inputPlayer = self.networkUser.localUser.inputPlayer;
+                                RT_isSprinting = instanceFieldBody.isSprinting;
+                                // Periodic sprint checker
+                                if (!RT_isSprinting) {
+                                    RT_timer += (double)Time.deltaTime;
+                                    if (RT_timer >= 0.05) {
+                                        if (!RT_animationCancel) {
+                                            RT_timer = 0 - SprintDelayTime(instanceFieldBody);
+                                        }
+                                        if (RT_timer >= 0) {
+                                            RT_isSprinting = !ShouldSprintBeDisabledOnThisBody(instanceFieldBody);
+                                            RT_animationCancel = false;
+                                            RT_timer = 0;
+                                        }
+                                    }
+                                } else { RT_timer = 0; }
+
+                                // Walking Logic
+                                if (inputPlayer.GetButton("Sprint")) {
+                                    if (RT_isSprinting && HoldSprintToWalk.Value) RT_isSprinting = false;
+                                    if (!RT_isSprinting && ShouldSprintBeDisabledOnThisBody(instanceFieldBody)) RT_isSprinting = true;
+                                    RT_timer = 0;
+                                }
+                                // Walk Toggle logic
+                                if (!HoldSprintToWalk.Value && inputPlayer.GetButtonDown("Sprint")) {
+                                    RT_walkToggle = !RT_walkToggle;
+                                }
+
+                                // Animation cancelling logic.
+                                if (!RT_animationCancel && RT_timer < -(RT_animationCancelDelay)
+                                    && !inputPlayer.GetButton("PrimarySkill") && !inputPlayer.GetButton("SecondarySkill")
+                                    && !inputPlayer.GetButton("SpecialSkill") && !inputPlayer.GetButton("UtilitySkill")) {
+                                    RT_timer = -(RT_animationCancelDelay);
+                                    RT_animationCancel = true;
+                                }
+
+                                // Angle check disables sprinting if the movement angle is too large
+                                if (RT_isSprinting && !SprintInAnyDirection.Value) {
+                                    Vector3 aimDirection = instanceFieldBodyInputs.aimDirection;
+                                    aimDirection.y = 0f;
+                                    aimDirection.Normalize();
+                                    Vector3 moveVector = instanceFieldBodyInputs.moveVector;
+                                    moveVector.y = 0f;
+                                    moveVector.Normalize();
+                                    if ((instanceFieldBody.bodyFlags & CharacterBody.BodyFlags.SprintAnyDirection) == CharacterBody.BodyFlags.None && (Vector3.Dot(aimDirection, moveVector) < self.GetFieldValue<float>("sprintMinAimMoveDot"))) {
+                                        RT_isSprinting = false;
+                                    }
+                                }
+
+                                if (HoldSprintToWalk.Value && RT_walkToggle) RT_walkToggle = false;
+                                if (!RT_walkToggle) instanceFieldBodyInputs.sprint.PushState(RT_isSprinting);
+                            } // End of if (instanceFieldBody)
+                        } // End of if (networkUser) check
+                    } // End of if (instanceFieldBodyInputs)
+                } // End of "RT_enabled"
+            }; // End of FixedUpdate
+
+            // Custom FOV
+            On.RoR2.CameraRigController.Update += (orig, self) => {
+                orig(self);
+                if (RTAutoSprintEx.RT_visuals) {
+                    if (CustomFOV.Value >= 1 && CustomFOV.Value <= 180) self.baseFov = CustomFOV.Value;
+                    else Logger.LogWarning("CustomFOV value out of range!");
+                }
+            };
+
+            // Sprinting Crosshair
+            IL.RoR2.UI.CrosshairManager.UpdateCrosshair += (il) => {
+                if (RTAutoSprintEx.RT_visuals) {
+                    ILCursor c = new ILCursor(il);
+                    if (DisableSprintingCrosshair.Value) {
+                        Logger.LogInfo("Disabling sprinting crosshair:");
+                        try {
+                            c.Index = 0;
+                            c.GotoNext(
+                                MoveType.After,
+                                x => x.MatchCallvirt<CharacterBody>("get_isSprinting")
+                            );
+                            c.Emit(OpCodes.Ldc_I4, 0);
+                            c.Emit(OpCodes.And);
+                        } catch (Exception ex) { Debug.LogError(ex); }
+                    }
+                }
+            };
+
+            //Sprinting FOV change
+            IL.RoR2.CameraRigController.Update += (il) => {
+                if (RTAutoSprintEx.RT_visuals) {
+                    ILCursor c = new ILCursor(il);
+                    if (SprintFOVMultiplier.Value >= 0.1 && SprintFOVMultiplier.Value <= 2.0) {
+                        Logger.LogInfo("Modifying Sprint FOV Multiplier:");
+                        try {
+                            c.Index = 0;
+                            c.GotoNext(
+                                x => x.MatchLdloc(0),
+                                x => x.MatchLdarg(0),
+                                x => x.MatchLdfld<RoR2.CameraRigController>("targetBody"),
+                                x => x.MatchCallvirt<RoR2.CharacterBody>("get_isSprinting")
+                            );
+                            c.Index += 7;
+                            c.Next.Operand = (float)SprintFOVMultiplier.Value;
+                        } catch (Exception ex) { Debug.LogError(ex); }
+                    } else Logger.LogWarning("SprintFOVMultiplier value out of range!");
+                    // Disable Speedlines
+                    if (DisableSpeedlines.Value) {
+                        Logger.LogInfo("Disabling Speedlines:");
+                        try {
+                            c.Index = 0;
+                            c.GotoNext(
+                                x => x.MatchLdarg(0),
+                                x => x.MatchLdfld<RoR2.CameraRigController>("sprintingParticleSystem"),
+                                x => x.MatchCallvirt<UnityEngine.ParticleSystem>("get_isPlaying")
+                            );
+                            c.RemoveRange(3);
+                            c.Emit(OpCodes.Ldc_I4, 1);
+                        } catch (Exception ex) { Debug.LogError(ex); }
+                    }
+                }
+                Logger.LogInfo("CameraRigController.Update IL edits done.");
+            };
+        } // End of Awake
+
+        // CONSOLE COMMANDS
+        [RoR2.ConCommand(commandName = "rt_help", flags = ConVarFlags.None, helpText = "List all RTAutoSprintEx console commands.")]
+        private static void CCRTHelp(ConCommandArgs args) {
+            Debug.Log("'rt_reload_config'. Reload the RTAutoSprintEx2.cfg configuration file");
+            Debug.Log("'rt_reload_addon'. Actually part of RTAutoSprintAddon. Reloads its config and reinitializes.");
+            Debug.Log("'rt_sprint_enable <bool>'. Default: true. Enables/Disables the sprinting part of the mod.");
+            //Debug.Log("'rt_sprintcheat <bool>'. Default: false. Allows you to sprint in any direction.");
+            Debug.Log("'rt_fov <int>'. Default: 60. Valid Range: 1-180. Sets the base FOV.");
+            //Debug.Log("'rt_fov_multiplier <float>'\t Default: 1,3. Valid Range: 0.5-2.0. How much the camera FOV changes when sprinting.");
+            //Debug.Log("'rt_disable_speedlines <bool>'\t Default: false.");
+            //Debug.Log("'rt_disable_sprinting_crosshair <bool>'\t Default: true.");
+            //Debug.Log("'rt_artificer_flamethrower_toggle <bool>'.  Default: true.");
+        }
+
+        [ConCommand(commandName = "rt_reload_config", flags = ConVarFlags.None, helpText = "Reload the RTAutoSprintEx2.cfg configuration file")]
+        private static void CCRTReload(ConCommandArgs args) {
+            conf.Reload();
+            Debug.Log("Configuration hopefully reloaded. DisableSpeedlines and DisableSprintingCrosshair will require a game restart.");
+        }
+
+        [ConCommand(commandName = "rt_sprint_enabled", flags = ConVarFlags.None, helpText = "Enable/Disable the sprinting component of the mod.")]
+        private static void CCRTSprintEnable(ConCommandArgs args) {
+            try {
+                args.CheckArgumentCount(1);
+                if (Utils.TryParseBool(args[0], out bool result)) {
+                    RTAutoSprintEx.RT_enabled = (bool)result;
+                    Debug.Log($"{nameof(RTAutoSprintEx.RT_enabled)}={RTAutoSprintEx.RT_enabled}");
+                }
+            } catch (Exception ex) { Debug.LogError(ex); }
+        }
+
+        [ConCommand(commandName = "rt_fov", flags = ConVarFlags.None, helpText = "Default: 60. Valid Range: 1-180. Sets the base FOV.")]
+        private static void CCRTFOV(ConCommandArgs args) {
+            try {
+                args.CheckArgumentCount(1);
+                int? value = args.TryGetArgInt(0);
+                if (value.HasValue) {
+                    if (value >= 1 && value <= 180) {
+                        CustomFOV.Value = (int)value;
+                        Debug.Log($"{nameof(CustomFOV)}={value}");
+                        Debug.Log("Hello, world!");
+                    }
+                }
+            } catch (Exception ex) { Debug.LogError(ex); }
+        }
+
+        // CONFIGURATION
+        public static ConfigFile conf;
+        public static ConfigEntry<bool> SprintInAnyDirection { get; set; }
+        public static ConfigEntry<bool> HoldSprintToWalk { get; set; }
+        public static ConfigEntry<bool> ArtificerFlamethrowerToggle { get; set; }
+        public static ConfigEntry<bool> DisableSprintingCrosshair { get; set; }
+        public static ConfigEntry<bool> DisableFOVChange { get; set; }
+        public static ConfigEntry<bool> DisableSpeedlines { get; set; }
+        public static ConfigEntry<int> CustomFOV { get; set; }
+        public static ConfigEntry<double> SprintFOVMultiplier { get; set; }
+        public static ConfigEntry<bool> DisableAutoSprinting { get; set; }
+        public static ConfigEntry<bool> DisableVisualChanges { get; set; }
+        public static ConfigEntry<string> EntityStatesSprintingDisabled { get; set; }
+        public static ConfigEntry<string> EntityStatesSprintingDelay { get; set; }
+
+        private void SetupConfiguration() {
+            conf = new ConfigFile(Paths.ConfigPath + "\\RTAutoSprintEx2.cfg", true);
+
+            HoldSprintToWalk = conf.Bind<bool>(
+                "1) Movement", "HoldSprintToWalk", true,
+                new ConfigDescription("Walk by holding down the sprint key. If disabled, makes the Sprint key toggle AutoSprinting functionality on and off.",
+                new AcceptableValueList<bool>(true, false)));
+            SprintInAnyDirection = conf.Bind<bool>(
+                "1) Movement", "SprintInAnyDirection", false,
+                new ConfigDescription("Cheat, Allows you to sprint in any direction. Please don't use in multiplayer.",
+                new AcceptableValueList<bool>(true, false)));
+            DisableSprintingCrosshair = conf.Bind<bool>(
+                "2) Visual", "DisableSprintingCrosshair", true,
+                new ConfigDescription("Disables the useless special sprinting chevron crosshair.",
+                new AcceptableValueList<bool>(true, false)));
+            CustomFOV = conf.Bind<int>(
+                "2) Visual", "FOVValue", 60,
+                new ConfigDescription("Sets a custom (vertical) FOV. Game default 60V is roughly 90H.",
+                new AcceptableValueRange<int>(1, 180)));
+            SprintFOVMultiplier = conf.Bind<double>(
+                "2) Visual", "SprintFOVMultiplier", 1.3,
+                new ConfigDescription("Sets the sprinting FOV multiplier. Set to 1 to disable.",
+                new AcceptableValueRange<double>(0.1, 2)));
+            DisableSpeedlines = conf.Bind<bool>(
+                "2) Visual", "DisableSpeedlines", false,
+                new ConfigDescription("Disables the speedlines effect shown when sprinting.",
+                new AcceptableValueList<bool>(true, false)));
+            DisableAutoSprinting = conf.Bind<bool>(
+                 "3) Misc", "DisabledAutoSprinting", false,
+                 new ConfigDescription("Disable the AutoSprinting part of the mod.",
+                 new AcceptableValueList<bool>(true, false)));
+            DisableVisualChanges = conf.Bind<bool>(
+                 "3) Misc", "DisableVisualChanges", false,
+                 new ConfigDescription("Disable the FOV and visual changes of the mod.",
+                 new AcceptableValueList<bool>(true, false)));
+
+            RTAutoSprintEx.RT_enabled = !DisableAutoSprinting.Value;
+            RTAutoSprintEx.RT_visuals = !DisableVisualChanges.Value;
+            if (!RTAutoSprintEx.RT_enabled && !RTAutoSprintEx.RT_visuals) Logger.LogInfo("DisabledAutoSprinting and DisableVisualChanges both True, the mod literally does nothing now.");
+        } // End of SetupConfiguration()
+    } // End of class RTAutoSprintEx
 } // End of Namespace

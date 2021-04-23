@@ -1,26 +1,5 @@
 # Changelog
 
-`1.3.3` [2021-04-20]
-
-* Fixed captains alt airstrike.
-
-`1.3.2` [2021-04-06]
-
-* Forgot to add command helper back.
-
-`1.3.1` [2021-04-06]
-
-* Back to R2API. Otherwise identical to 1.2.1
-
-`1.2.1` [2021-04-03]
-
-* MUL-T dualwield should now work properly.
-
-`1.2.0` [2021-03-30]
-
-* Updated for Anniversary, switched from R2API to EnigmaticThunder.
-* [KNOWN ISSUE] Bandits revolver has a winddown animation which blocks autosprinting. Shooting or tapping sprint will cancel this.
-
 `1.1.3` [2020-10-08]
 
 * Added `ToggleAutoSprint` option, with it enabled pressing Sprint will toggle between walking and auto-sprinting.

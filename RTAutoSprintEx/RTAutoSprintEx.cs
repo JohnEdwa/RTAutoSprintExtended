@@ -1,4 +1,3 @@
-﻿
 /*
 THINGS TO DO:
     Risk of Options 2 config

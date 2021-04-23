@@ -8,7 +8,7 @@
 
 * Forgot to add command helper back.
 
-`1.3.0` [2021-04-06]
+`1.3.1` [2021-04-06]
 
 * Back to R2API. Otherwise identical to 1.2.1
 

@@ -8,6 +8,7 @@ THINGS TO DO:
 //#define DEBUGGY
 
 using System;
+using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
 using BepInEx;
@@ -300,7 +301,6 @@ namespace RTAutoSprintEx {
         [RoR2.ConCommand(commandName = "rt_help", flags = ConVarFlags.None, helpText = "List all RTAutoSprintEx console commands.")]
         private static void CCRTHelp(ConCommandArgs args) {
             Debug.Log("'rt_reload_config'. Reload the RTAutoSprintEx2.cfg configuration file");
-            Debug.Log("'rt_reload_addon'. Actually part of RTAutoSprintAddon. Reloads its config and reinitializes.");
             Debug.Log("'rt_sprint_enable <bool>'. Default: true. Enables/Disables the sprinting part of the mod.");
             //Debug.Log("'rt_sprintcheat <bool>'. Default: false. Allows you to sprint in any direction.");
             Debug.Log("'rt_fov <int>'. Default: 60. Valid Range: 1-180. Sets the base FOV.");
@@ -310,7 +310,7 @@ namespace RTAutoSprintEx {
             //Debug.Log("'rt_artificer_flamethrower_toggle <bool>'.  Default: true.");
         }
 
-        [ConCommand(commandName = "rt_reload_config", flags = ConVarFlags.None, helpText = "Reload the RTAutoSprintEx2.cfg configuration file")]
+        [ConCommand(commandName = "rt_reload_config", flags = ConVarFlags.None, helpText = "Reload the com.johnedwa.RTAutoSprintEx.cfg configuration file")]
         private static void CCRTReload(ConCommandArgs args) {
             conf.Reload();
             Debug.Log("Configuration hopefully reloaded. DisableSpeedlines and DisableSprintingCrosshair will require a game restart.");
@@ -346,7 +346,6 @@ namespace RTAutoSprintEx {
         public static ConfigFile conf;
         public static ConfigEntry<bool> SprintInAnyDirection { get; set; }
         public static ConfigEntry<bool> HoldSprintToWalk { get; set; }
-        public static ConfigEntry<bool> ArtificerFlamethrowerToggle { get; set; }
         public static ConfigEntry<bool> DisableSprintingCrosshair { get; set; }
         public static ConfigEntry<bool> DisableFOVChange { get; set; }
         public static ConfigEntry<bool> DisableSpeedlines { get; set; }
@@ -358,7 +357,23 @@ namespace RTAutoSprintEx {
         public static ConfigEntry<string> EntityStatesSprintingDelay { get; set; }
 
         private void SetupConfiguration() {
-            conf = new ConfigFile(Paths.ConfigPath + "\\RTAutoSprintEx2.cfg", true);
+
+            string path = Paths.ConfigPath + "\\com.johnedwa.RTAutoSprintEx.cfg";
+            // I'm sure there is some other way to do this, but I don't know it.
+            /* 
+            try {
+                var sr = new StreamReader(path);
+                var fileContents = sr.ReadToEnd();
+                if (fileContents.Contains("ArtificerFlamethrowerToggle")) {
+                    sr.Close();
+                    var sw = new StreamWriter(path);
+                    sw.Flush();
+                    sw.Close();
+                } else sr.Close();
+            } catch {};
+            */
+
+            conf = new ConfigFile(path, true);
 
             HoldSprintToWalk = conf.Bind<bool>(
                 "1) Movement", "HoldSprintToWalk", true,

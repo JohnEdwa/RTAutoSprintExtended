@@ -10,7 +10,6 @@
 
 * Complete rewrite of the mod from scratch. Now with possible support for custom survivors, skills and a kind-of-an-API.
 * Custom survivor/skill patch [released as its own addon for compatibility reasons.](https://thunderstore.io/package/JohnEdwa/RTAutoSprintAddon/)
-* *Configuration file reset and renamed to `RTAutoSprintEx2.cfg`.* I tried to make it migrate, I failed. Sorry.
 * [known issue] Artificer flamethrower "hold-to-cast" mode isn't implemented.
 * [known issue] Disabling the mod only on certain survivors isn't possible.
 

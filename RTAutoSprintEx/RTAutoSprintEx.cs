@@ -23,7 +23,7 @@ using MonoMod.Cil;
 using EntityStates;
 
 namespace RTAutoSprintEx {
-    [BepInPlugin("com.johnedwa.RTAutoSprintEx", "RTAutoSprintEx", "2.0.1")]
+    [BepInPlugin("com.johnedwa.RTAutoSprintEx", "RTAutoSprintEx", "2.0.2")]
     [BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync)]
     [R2APISubmoduleDependency(nameof(CommandHelper))]
@@ -192,16 +192,15 @@ namespace RTAutoSprintEx {
                                     }
                                 } else { RT_timer = 0; }
 
-                                // Walking Logic
-                                if (inputPlayer.GetButton("Sprint")) {
+                                // Walk Toggle logic
+                                if (!HoldSprintToWalk.Value && inputPlayer.GetButtonDown("Sprint") && !ShouldSprintBeDisabledOnThisBody(instanceFieldBody)) {
+                                    RT_walkToggle = !RT_walkToggle;
+                                } else if (inputPlayer.GetButton("Sprint")) {
                                     if (RT_isSprinting && HoldSprintToWalk.Value) RT_isSprinting = false;
                                     if (!RT_isSprinting && ShouldSprintBeDisabledOnThisBody(instanceFieldBody)) RT_isSprinting = true;
                                     RT_timer = 0;
                                 }
-                                // Walk Toggle logic
-                                if (!HoldSprintToWalk.Value && inputPlayer.GetButtonDown("Sprint")) {
-                                    RT_walkToggle = !RT_walkToggle;
-                                }
+
 
                                 // Animation cancelling logic.
                                 if (!RT_animationCancel && RT_timer < -(RT_animationCancelDelay)

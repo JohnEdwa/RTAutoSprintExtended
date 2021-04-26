@@ -35,7 +35,7 @@ How to implement RTAutoSprintEx support for your mod:
 
 Add a soft dependency for ``com.johnedwa.RTAutoSprintEx``, then use SendMessage to send the EntityStates you want RTAutoSprintEx to look out for.
 ``RT_SprintDisableMessage`` blocks AutoSprinting from activating when the player is in that EntityState.
-``RT_AnimationDelayMessage`` looks for a field called duration to use as a delay - useful for keeping wind-down animations from being immediately cancelled. As an example, here it is in [EntityStates.Mage.Weapon.FireFireBolt](https://user-images.githubusercontent.com/5417183/116014709-4c688200-a63f-11eb-8b25-4b030fe18a17.JPG)
+``RT_AnimationDelayMessage`` looks for a field called ``duration`` to use as a delay - useful for keeping wind-down animations from being immediately cancelled. As an example, here it is in [EntityStates.Mage.Weapon.FireFireBolt](https://user-images.githubusercontent.com/5417183/116014709-4c688200-a63f-11eb-8b25-4b030fe18a17.JPG)
 
 ```
 [BepInDependency("com.johnedwa.RTAutoSprintEx", BepInDependency.DependencyFlags.SoftDependency)]

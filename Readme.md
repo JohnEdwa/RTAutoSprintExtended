@@ -6,7 +6,7 @@
 
 ### Latest changes
 
-`2.0.0`  [2021-04-xx]
+`2.0.1`  [2021-04-26]
 
 * Complete rewrite of the mod from scratch. Now with possible support for custom survivors, skills and a kind-of-an-API.
 * Custom survivor/skill patch [released as its own addon for compatibility reasons.](https://thunderstore.io/package/JohnEdwa/RTAutoSprintAddon/)
@@ -29,20 +29,24 @@ Kudos to Relocity and Thrawnarch for creating the original mod, and Rein, Harb, 
 
 ### Mod compatibility and "API":
 
-You can use SendMessage to register an EntityState to the list of Sprint Disablers and Animation Delayers. 
-Add a soft dependency to ensure RTAutoSprintEx is loaded before your mod.
+[**For custom survivor/skill support, see RTAutoSprintAddon.**](https://thunderstore.io/package/JohnEdwa/RTAutoSprintAddon/)
+
+How to implement RTAutoSprintEx support for your mod:
+
+Add a soft dependency for com.johnedwa.RTAutoSprintEx, then use SendMessage to send the EntityStates you want RTAutoSprintEx to look out for.
+``RT_SprintDisableMessage`` blocks AutoSprinting from activating when the player is in that EntityState.
+``RT_AnimationDelayMessage`` looks for a field called duration to use as a delay - useful for keeping wind-down animations from being immediately cancelled. As an example, here it is in [EntityStates.Mage.Weapon.FireFireBolt](https://user-images.githubusercontent.com/5417183/116014709-4c688200-a63f-11eb-8b25-4b030fe18a17.JPG)
 
 ```
 [BepInDependency("com.johnedwa.RTAutoSprintEx", BepInDependency.DependencyFlags.SoftDependency)]
+
+...
 
 if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.johnedwa.RTAutoSprintEx")) {
     SendMessage("RT_SprintDisableMessage", "EntityStates.Mage.Weapon.Flamethrower"); 
     SendMessage("RT_AnimationDelayMessage", "EntityStates.Mage.Weapon.FireFireBolt"); 
 }
 ```
-
-`RT_SprintDisableMessage`  blocks AutoSprinting from activating when the player is in that EntityState.
-`RT_AnimationDelayMessage` looks for a field called `duration` to use as a delay - useful for keeping wind-down animations from being immediately cancelled. 
 
 ## Configuration
 

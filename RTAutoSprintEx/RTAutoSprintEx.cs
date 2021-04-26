@@ -39,8 +39,8 @@ namespace RTAutoSprintEx {
         internal HashSet<string> stateAnimationDelayList = new HashSet<string>();
 
         // Receive SendMessages.
-        public void RT_SprintDisableMessage(string state) { stateSprintDisableList.Add(state); }
-        public void RT_AnimationDelayMessage(string state) { stateAnimationDelayList.Add(state); }
+        public void RT_SprintDisableMessage(string state) { stateSprintDisableList.Add(state); Logger.LogInfo("Received RT_SprintDisableMessage for " + state);}
+        public void RT_AnimationDelayMessage(string state) { stateAnimationDelayList.Add(state); Logger.LogInfo("Received RT_AnimationDelayMessage for " + state);}
 
         // Registers EntityStates as sprint delayers    
         private bool RT_RegisterAnimationDelay(string state) {
@@ -336,7 +336,6 @@ namespace RTAutoSprintEx {
                     if (value >= 1 && value <= 180) {
                         CustomFOV.Value = (int)value;
                         Debug.Log($"{nameof(CustomFOV)}={value}");
-                        Debug.Log("Hello, world!");
                     }
                 }
             } catch (Exception ex) { Debug.LogError(ex); }

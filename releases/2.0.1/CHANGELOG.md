@@ -1,5 +1,12 @@
 # Changelog
 
+`2.0.1`  [2021-04-26]
+
+* Complete rewrite of the mod from scratch. Now with possible support for custom survivors, skills and a kind-of-an-API.
+* Custom survivor/skill patch [released as its own addon for compatibility reasons.](https://thunderstore.io/package/JohnEdwa/RTAutoSprintAddon/)
+* [known issue] Artificer flamethrower "hold-to-cast" mode isn't implemented.
+* [known issue] Disabling the mod only on certain survivors isn't possible.
+
 `1.3.3` [2021-04-20]
 
 * Fixed captains alt airstrike.

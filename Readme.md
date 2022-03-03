@@ -1,4 +1,4 @@
-# RT AutoSprint Extended 2 | Game ver. 1.1.1.4
+# RT AutoSprint Extended 2 | Game ver. 1.2.1.0
 
 ## [**For custom survivor/skill support, see RTAutoSprintAddon.**](https://thunderstore.io/package/JohnEdwa/RTAutoSprintAddon/)
 

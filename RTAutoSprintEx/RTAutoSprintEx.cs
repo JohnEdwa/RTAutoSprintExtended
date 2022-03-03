@@ -11,13 +11,13 @@ Modifying/Disabling FOV Change while sprinting.
 
 */
 
-#define DEBUGGY
+//#define DEBUGGY
 
 using System;
 using System.Collections.Generic;
 using BepInEx;
 using BepInEx.Configuration;
-using Rewired;
+using Rewired; 
 using UnityEngine;
 //using R2API.Utils;
 using RoR2;

@@ -1,5 +1,15 @@
 # Changelog
 
+`2.1.0` [2020-03-03]
+
+* Fixed for the DLC patch release - implemented Railgunner and the Void thing.
+* Removed R2API requirement (and console commands)
+* [known issue] Disabling FOV change while sprinting not implemented. Anyone knows where it's done, do tell.
+
+`2.0.2`  [2021-04-26]
+
+* Fixed Toggle Sprint mode skill cancelling.
+
 `2.0.1`  [2021-04-26]
 
 * Complete rewrite of the mod from scratch. Now with possible support for custom survivors, skills and a kind-of-an-API.

@@ -6,14 +6,11 @@
 
 ### Latest changes
 
-`2.0.0`  [2021-04-26]
+`2.1.0`
 
-* Complete rewrite of the mod from scratch. Now with possible support for custom survivors, skills and a kind-of-an-API.
-* Custom survivor/skill patch [released as its own addon for compatibility reasons.](https://thunderstore.io/package/JohnEdwa/RTAutoSprintAddon/)
-* [known issue] Artificer flamethrower "hold-to-cast" mode isn't implemented.
-* [known issue] Disabling the mod only on certain survivors isn't possible.
-* `2.0.1` Added console logs to the SendMessage receivers.
-* `2.0.2` Fixed Toggle Sprint mode skill cancelling.
+* Fixed for the DLC patch release - implemented Railgunner and Void thing.
+* Removed R2API requirement (and console commands)
+* [known issue] Disabling FOV change while sprinting not implemented. Anyone knows where it's done, do tell.
 
 # Description
 
@@ -68,16 +65,9 @@ if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.johnedwa.RTAutoSp
 * `DisabledAutoSprinting: true/[false]`: Disables the autosprinting part of the mod.
 * `DisableVisualChanges: true/[false]`: Disables the FOV/visual modification side of the mod.
 
-### Console commands
-
-* `rt_help`: Prints all the possible commands.
-* `rt_reload`: Reload the RTAutoSprintEx2.cfg configuration file.
-* `rt_sprint_enable true/false`: Enables/Disables the sprinting part of the mod.
-
 ## Known Issues / ToDo
 
-* No ability to disable for individual survivors or skills - yet.
-* Artificer Flamethrower "Hold to Cast" is not implemented.
+* Disabling FOV change while sprinting not implemented. Anyone knows where it's done, do tell.
 
 ## Changelog
 

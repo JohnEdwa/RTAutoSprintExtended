@@ -2,50 +2,29 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Configurations>Release</Configurations>
+    <OutputType>Library</OutputType>
+    <AssemblyName>RTAutoSprintEx</AssemblyName>
+    <RootNamespace>RTAutoSprintEx</RootNamespace>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="BepInEx">
-      <HintPath>..\..\Libs\BepInEx.dll</HintPath>
-    </Reference>
-    <Reference Include="MMHOOK_Assembly-CSharp">
-      <HintPath>..\..\Libs\MMHOOK_Assembly-CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="EnigmaticThunder">
-      <HintPath>..\..\Libs\EnigmaticThunder.dll</HintPath>
-    </Reference>   
-    <Reference Include="R2API">
-      <HintPath>..\..\Libs\R2API.dll</HintPath>
-    </Reference>  
-    <Reference Include="RiskOfOptions">
-      <HintPath>..\..\Libs\RiskOfOptions.dll</HintPath>
-    </Reference>  
-    <Reference Include="Mono.Cecil">
-      <HintPath>..\..\Libs\Mono.Cecil.dll</HintPath>
-    </Reference>
-    <Reference Include="MonoMod.Utils">
-      <HintPath>..\..\Libs\MonoMod.Utils.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\Libs\Assembly-CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>..\..\Libs\UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>..\..\Libs\UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.Networking">
-      <HintPath>..\..\Libs\UnityEngine.Networking.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\Libs\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.ParticleSystemModule">
-      <HintPath>..\..\Libs\UnityEngine.ParticleSystemModule.dll</HintPath>
-    </Reference>
-    <Reference Include="Rewired_Core">
-      <HintPath>..\..\Libs\Rewired_Core.dll</HintPath>
+    <PackageReference Include="BepInEx.Core" Version="5.4.11" />
+		<PackageReference Include="BetterUnityPlugin" Version="1.1.0" />
+		<PackageReference Include="RiskOfRain2" Version="1.0.6" />
+    <PackageReference Include="UnityEngine.Modules" Version="2019.4.26" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+  <Reference Include="MMHOOK_RoR2">
+      <HintPath>..\..\Libs\MMHOOK_RoR2.dll</HintPath>
     </Reference>
   </ItemGroup>
+  
 </Project>
+

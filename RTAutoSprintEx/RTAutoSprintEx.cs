@@ -5,28 +5,38 @@ THINGS TO DO:
     HoldSprintToWalk and walking auto-cancelling casts.
 */
 
-//#define DEBUGGY
+/* Things broken:
+
+Modifying/Disabling FOV Change while sprinting.
+
+*/
+
+#define DEBUGGY
 
 using System;
-using System.IO;
-using System.Reflection;
 using System.Collections.Generic;
 using BepInEx;
 using BepInEx.Configuration;
 using Rewired;
 using UnityEngine;
-using R2API.Utils;
+//using R2API.Utils;
 using RoR2;
-using R2API;
+//using R2API;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using EntityStates;
+//using EntityStates;
+//using System.Security;
+//using System.Security.Permissions;
+//[assembly: SecurityPermission( SecurityAction.RequestMinimum, SkipVerification = true )]
+
 
 namespace RTAutoSprintEx {
-    [BepInPlugin("com.johnedwa.RTAutoSprintEx", "RTAutoSprintEx", "2.0.2")]
-    [BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync)]
-    [R2APISubmoduleDependency(nameof(CommandHelper))]
+    [BepInPlugin("com.johnedwa.RTAutoSprintEx", "RTAutoSprintEx", "2.1")]
+    //[BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
+    //[NetworkCompatibility(CompatibilityLevel.NoNeedForSync)]
+    //[R2APISubmoduleDependency(nameof(CommandHelper))]
+
+    
 
     public class RTAutoSprintEx : BaseUnityPlugin {
         private static bool RT_enabled = true;
@@ -67,7 +77,8 @@ namespace RTAutoSprintEx {
                 var currentState = machine.state;
                 if (currentState == null) { return duration; }
                 if (stateAnimationDelayList.Contains(currentState.ToString())) {
-                    try { duration = currentState.GetFieldValue<float>("duration"); } catch { }
+                    //try { duration = currentState.GetFieldValue<float>("duration"); } catch { }
+                    try { duration = currentState.GetInstanceField<float>("duration"); } catch { }
                     //var stateField = currentState.GetType().GetFieldCached("duration");
                     //if (stateField != null) duration = (float)stateField.GetValue(currentState);
                     return duration;
@@ -77,7 +88,7 @@ namespace RTAutoSprintEx {
         }
 
         // Checks if an EntityState blocks sprinting
-        private bool ShouldSprintBeDisabledOnThisBody(CharacterBody targetBody) {
+        private bool ShouldSprintBeDisabledOnThisBody(RoR2.CharacterBody targetBody) {
             EntityStateMachine[] stateMachines;
             stateMachines = targetBody.GetComponents<EntityStateMachine>();
             bool isSprintBlocked = false;
@@ -99,7 +110,7 @@ namespace RTAutoSprintEx {
         }
 
         public void Awake() {
-            R2API.Utils.CommandHelper.AddToConsoleWhenReady();
+            //R2API.Utils.CommandHelper.AddToConsoleWhenReady();
             double RT_timer = 0.0;
             double RT_animationCancelDelay = 0.15;
             bool RT_isSprinting = false;
@@ -155,6 +166,18 @@ namespace RTAutoSprintEx {
             // Loader
             RT_RegisterAnimationDelay("EntityStates.Loader.SwingComboFist");
 
+            // Void thing
+            RT_RegisterAnimationDelay("EntityStates.VoidSurvivor.Weapon.FireHandBeam");
+            RT_RegisterAnimationDelay("EntityStates.VoidSurvivor.Weapon.ChargeCorruptHandBeam");
+            RT_RegisterSprintDisable("EntityStates.VoidSurvivor.Weapon.FireCorruptHandBeam");
+
+            // Railgunner
+            RT_RegisterAnimationDelay("EntityStates.Railgunner.Weapon.FirePistol");
+            RT_RegisterSprintDisable("EntityStates.Railgunner.Scope.WindUpScopeLight");
+            RT_RegisterSprintDisable("EntityStates.Railgunner.Scope.ActiveScopeLight");
+            RT_RegisterSprintDisable("EntityStates.Railgunner.Scope.WindUpScopeHeavy");
+            RT_RegisterSprintDisable("EntityStates.Railgunner.Scope.ActiveScopeHeavy");
+
             // On.RoR2.CharacterBody.OnSkillActivated += (orig, self, GenericSkill) => { 
             //     orig(self, GenericSkill); 
             //     Debug.Log( 
@@ -167,13 +190,13 @@ namespace RTAutoSprintEx {
             //         );
             // }; 
 
-            On.RoR2.PlayerCharacterMasterController.FixedUpdate += delegate (On.RoR2.PlayerCharacterMasterController.orig_FixedUpdate orig, RoR2.PlayerCharacterMasterController self) {
-                orig.Invoke(self);
+            On.RoR2.PlayerCharacterMasterController.FixedUpdate += (orig, self) => {
+                orig(self);
                 if (RT_enabled) {
-                    RoR2.InputBankTest instanceFieldBodyInputs = self.GetInstanceField<RoR2.InputBankTest>("bodyInputs");
+                    InputBankTest instanceFieldBodyInputs = self.GetInstanceField<InputBankTest>("bodyInputs");
                     if (instanceFieldBodyInputs) {
                         if (self.networkUser && self.networkUser.localUser != null && !self.networkUser.localUser.isUIFocused) {
-                            RoR2.CharacterBody instanceFieldBody = self.GetInstanceField<RoR2.CharacterBody>("body");
+                            CharacterBody instanceFieldBody = self.GetInstanceField<CharacterBody>("body");
                             if (instanceFieldBody) {
                                 Player inputPlayer = self.networkUser.localUser.inputPlayer;
                                 RT_isSprinting = instanceFieldBody.isSprinting;
@@ -218,7 +241,7 @@ namespace RTAutoSprintEx {
                                     Vector3 moveVector = instanceFieldBodyInputs.moveVector;
                                     moveVector.y = 0f;
                                     moveVector.Normalize();
-                                    if ((instanceFieldBody.bodyFlags & CharacterBody.BodyFlags.SprintAnyDirection) == CharacterBody.BodyFlags.None && (Vector3.Dot(aimDirection, moveVector) < self.GetFieldValue<float>("sprintMinAimMoveDot"))) {
+                                    if ((instanceFieldBody.bodyFlags & CharacterBody.BodyFlags.SprintAnyDirection) == CharacterBody.BodyFlags.None && (Vector3.Dot(aimDirection, moveVector) < self.GetInstanceField<float>("sprintMinAimMoveDot"))) {
                                         RT_isSprinting = false;
                                     }
                                 }
@@ -260,6 +283,7 @@ namespace RTAutoSprintEx {
             };
 
             //Sprinting FOV change
+            /*
             IL.RoR2.CameraRigController.Update += (il) => {
                 if (RTAutoSprintEx.RT_visuals) {
                     ILCursor c = new ILCursor(il);
@@ -277,25 +301,23 @@ namespace RTAutoSprintEx {
                             c.Next.Operand = (float)SprintFOVMultiplier.Value;
                         } catch (Exception ex) { Debug.LogError(ex); }
                     } else Logger.LogWarning("SprintFOVMultiplier value out of range!");
-                    // Disable Speedlines
-                    if (DisableSpeedlines.Value) {
-                        Logger.LogInfo("Disabling Speedlines:");
-                        try {
-                            c.Index = 0;
-                            c.GotoNext(
-                                x => x.MatchLdarg(0),
-                                x => x.MatchLdfld<RoR2.CameraRigController>("sprintingParticleSystem"),
-                                x => x.MatchCallvirt<UnityEngine.ParticleSystem>("get_isPlaying")
-                            );
-                            c.RemoveRange(3);
-                            c.Emit(OpCodes.Ldc_I4, 1);
-                        } catch (Exception ex) { Debug.LogError(ex); }
-                    }
                 }
                 Logger.LogInfo("CameraRigController.Update IL edits done.");
             };
-        } // End of Awake
+            */
 
+            IL.RoR2.CameraRigController.SetSprintParticlesActive += (il) => {
+                if (DisableSpeedlines.Value) {
+                    ILCursor c = new ILCursor(il);
+                    Logger.LogInfo("Disabling Speedlines:");
+                    try {
+                        c.Index = 0;
+                        c.Emit(OpCodes.Ret);
+                    } catch (Exception ex) { Debug.LogError(ex); }
+                }
+            };
+        } // End of Awake
+/*
         // CONSOLE COMMANDS
         [RoR2.ConCommand(commandName = "rt_help", flags = ConVarFlags.None, helpText = "List all RTAutoSprintEx console commands.")]
         private static void CCRTHelp(ConCommandArgs args) {
@@ -339,7 +361,7 @@ namespace RTAutoSprintEx {
                 }
             } catch (Exception ex) { Debug.LogError(ex); }
         }
-
+*/
         // CONFIGURATION
         public static ConfigFile conf;
         public static ConfigEntry<bool> SprintInAnyDirection { get; set; }
@@ -357,20 +379,6 @@ namespace RTAutoSprintEx {
         private void SetupConfiguration() {
 
             string path = Paths.ConfigPath + "\\com.johnedwa.RTAutoSprintEx.cfg";
-            // I'm sure there is some other way to do this, but I don't know it.
-            /* 
-            try {
-                var sr = new StreamReader(path);
-                var fileContents = sr.ReadToEnd();
-                if (fileContents.Contains("ArtificerFlamethrowerToggle")) {
-                    sr.Close();
-                    var sw = new StreamWriter(path);
-                    sw.Flush();
-                    sw.Close();
-                } else sr.Close();
-            } catch {};
-            */
-
             conf = new ConfigFile(path, true);
 
             HoldSprintToWalk = conf.Bind<bool>(

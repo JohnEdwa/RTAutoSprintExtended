@@ -2,15 +2,15 @@
 
 ## [**For custom survivor/skill support, see RTAutoSprintAddon.**](https://thunderstore.io/package/JohnEdwa/RTAutoSprintAddon/)
 
----
 
 ### Latest changes
 
-`2.1.0`
+`2.1.1`
 
 * Fixed for the DLC patch release - implemented Railgunner and Void thing.
 * Removed R2API requirement (and console commands)
 * [known issue] Disabling FOV change while sprinting not implemented. Anyone knows where it's done, do tell.
+* 2.1.1 - Added the dependency for HookGenPatcher.
 
 # Description
 
@@ -24,7 +24,6 @@ Kudos to Relocity and Thrawnarch for creating the original mod, and Rein, Harb, 
 * Automatically sprints whenever the game would allow you to - including while charging Artificer or Engineer main attacks.
 * Show the correct crosshair while sprinting instead of the useless chevron.
 * Modify the the FOV, sprinting FOV change, and speedline effect in the config.
-* Most of the configuration edits can be dones while the game is running, use the `rt_reload` console command to reload the file.
 
 ### Mod compatibility and "API":
 

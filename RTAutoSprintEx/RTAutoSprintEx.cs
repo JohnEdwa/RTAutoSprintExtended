@@ -36,8 +36,6 @@ namespace RTAutoSprintEx {
     //[NetworkCompatibility(CompatibilityLevel.NoNeedForSync)]
     //[R2APISubmoduleDependency(nameof(CommandHelper))]
 
-    
-
     public class RTAutoSprintEx : BaseUnityPlugin {
         private static bool RT_enabled = true;
         private static bool RT_visuals = true;

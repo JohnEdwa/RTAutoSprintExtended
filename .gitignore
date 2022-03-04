@@ -331,5 +331,8 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+# Additions
 createrelease.bat
+releases/*
 releases/*/*.zip

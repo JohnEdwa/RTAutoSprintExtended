@@ -22,7 +22,7 @@ namespace RTAutoSprintEx {
         internal static T GetInstanceField<T>(this object instance, string fieldName) {
             BindingFlags bindingAttr = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
             FieldInfo field = instance.GetType().GetField(fieldName, bindingAttr);
-            return (T)((object)field.GetValue(instance));
+            return (T)field.GetValue(instance);
         }
 
         internal static void SetInstanceField<T>(this object instance, string fieldName, T value) {

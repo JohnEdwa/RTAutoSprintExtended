@@ -13,16 +13,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BepInEx.Core" Version="5.4.11" />
+    <PackageReference Include="BepInEx.Core" Version="5.4.19" />
 		<PackageReference Include="BetterUnityPlugin" Version="1.1.0" />
 		<PackageReference Include="RiskOfRain2" Version="1.0.6" />
     <PackageReference Include="UnityEngine.Modules" Version="2019.4.26" />
   </ItemGroup>
 
-
   <ItemGroup>
-  <Reference Include="MMHOOK_RoR2">
-      <HintPath>..\..\Libs\MMHOOK_RoR2.dll</HintPath>
+    <Reference Include="MMHOOK_Assembly-CSharp">
+      <HintPath>D:\Steam\steamapps\common\Risk of Rain 2\BepInEx\plugins\RiskofThunder-HookGenPatcher-1.2.3\BepInEx\plugins\MMHOOK\MMHOOK_Assembly-CSharp.dll</HintPath>
     </Reference>
   </ItemGroup>
   

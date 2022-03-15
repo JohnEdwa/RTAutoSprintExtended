@@ -8,6 +8,7 @@ THINGS TO DO:
 /* Things broken:
 
 Modifying/Disabling FOV Change while sprinting.
+Modifying/Disabling particles while sprinting.
 
 */
 
@@ -19,23 +20,12 @@ using BepInEx;
 using BepInEx.Configuration;
 using Rewired; 
 using UnityEngine;
-//using R2API.Utils;
 using RoR2;
-//using R2API;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-//using EntityStates;
-//using System.Security;
-//using System.Security.Permissions;
-//[assembly: SecurityPermission( SecurityAction.RequestMinimum, SkipVerification = true )]
-
 
 namespace RTAutoSprintEx {
-    [BepInPlugin("com.johnedwa.RTAutoSprintEx", "RTAutoSprintEx", "2.1")]
-    //[BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
-    //[NetworkCompatibility(CompatibilityLevel.NoNeedForSync)]
-    //[R2APISubmoduleDependency(nameof(CommandHelper))]
-
+    [BepInPlugin("com.johnedwa.RTAutoSprintEx", "RTAutoSprintEx", "2.2")]
     public class RTAutoSprintEx : BaseUnityPlugin {
         private static bool RT_enabled = true;
         private static bool RT_visuals = true;
@@ -304,6 +294,8 @@ namespace RTAutoSprintEx {
             };
             */
 
+            //Sprinting particle change
+            /*
             IL.RoR2.CameraRigController.SetSprintParticlesActive += (il) => {
                 if (DisableSpeedlines.Value) {
                     ILCursor c = new ILCursor(il);
@@ -313,7 +305,7 @@ namespace RTAutoSprintEx {
                         c.Emit(OpCodes.Ret);
                     } catch (Exception ex) { Debug.LogError(ex); }
                 }
-            };
+            };*/
         } // End of Awake
 /*
         // CONSOLE COMMANDS

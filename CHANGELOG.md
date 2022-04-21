@@ -1,5 +1,12 @@
 # Changelog
 
+`2.1.1`
+
+* Fixed for the DLC patch release - implemented Railgunner and Void thing.
+* Removed R2API requirement (and console commands)
+* [known issue] Disabling FOV change while sprinting not implemented. Anyone knows where it's done, do tell.
+* 2.1.1 - Added the dependency for HookGenPatcher.
+
 `2.1.0` [2020-03-03]
 
 * Fixed for the DLC patch release - implemented Railgunner and the Void thing.

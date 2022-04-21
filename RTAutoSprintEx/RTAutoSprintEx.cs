@@ -31,7 +31,7 @@ using MonoMod.Cil;
 
 
 namespace RTAutoSprintEx {
-    [BepInPlugin("com.johnedwa.RTAutoSprintEx", "RTAutoSprintEx", "2.1")]
+    [BepInPlugin("com.johnedwa.RTAutoSprintEx", "RTAutoSprintEx", "2.1.2")]
     //[BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
     //[NetworkCompatibility(CompatibilityLevel.NoNeedForSync)]
     //[R2APISubmoduleDependency(nameof(CommandHelper))]

@@ -1,6 +1,6 @@
 {
     "name": "RTAutoSprintEx",
-    "version_number": "2.1.1",
+    "version_number": "2.1.2",
     "website_url": "https://github.com/JohnEdwa/RTAutoSprintExtended",
     "description": "RTAutoSprint fixed and enhanced with more features. Sprint automatically, but only when you would be allowed to do so in the first place.",
     "dependencies": [

@@ -1,5 +1,10 @@
 # Changelog
 
+`2.1.2`
+
+* Quick fix for patch 1.2.3.1
+
+
 `2.1.1`
 
 * Fixed for the DLC patch release - implemented Railgunner and Void thing.

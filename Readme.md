@@ -1,18 +1,17 @@
-# RT AutoSprint Extended 2 | Game ver. 1.2.3.1
+# RT AutoSprint Extended 2 | Game ver. 1.3.1
 
 ## [**For custom survivor/skill support, see RTAutoSprintAddon.**](https://thunderstore.io/package/JohnEdwa/RTAutoSprintAddon/)
 
 
 ### Latest changes
 
-`2.1.2`
+'3.0.0-BETA'
 
-* Quick fix for patch 1.2.3.1
+* Updated for Seekers of the Storm, doesn't have the new characters yet.
 
 # Description
 
-Removes the need to manually sprint, instead always sprint when the base game would allow you to. Hold sprint to walk and cancel skills like flamethrower.
-To supplement that, the sprinting crosshair and speedlines are removed, and the FOV and ~~FOV sprint expanding can be edited.~~
+Removes the need to manually sprint, instead always sprint when the base game would allow you to. Hold sprint to walk and cancel skills like flamethrower. To supplement that, the useless sprinting crosshair is also disabled.
 
 Kudos to Relocity and Thrawnarch for creating the original mod, and Rein, Harb, ThinkInvisible, Twiner son of Twine, and Aaron (among others) from the modding Discord for help.
 
@@ -20,7 +19,6 @@ Kudos to Relocity and Thrawnarch for creating the original mod, and Rein, Harb, 
 
 * Automatically sprints whenever the game would allow you to - including while charging Artificer or Engineer main attacks.
 * Show the correct crosshair while sprinting instead of the useless chevron.
-* Modify the the FOV, ~~sprinting FOV change~~, and speedline effect in the config.
 
 ### Mod compatibility and "API":
 
@@ -45,25 +43,17 @@ if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.johnedwa.RTAutoSp
 
 ## Configuration
 
+### Debug
+
+* `PrintEntityStates: true/[false]` : Prints all the know EntityStates to the BepInEx console for use with custom survivors and AutoSprintAddon.
+
 ### Movement
 
 * `HoldSprintToWalk: [true]/false` : True: Holding sprint makes you walk | False: tapping sprint toggles autosprinting on and off.
 
 ### Visual
 
-* `FOVValue [60], 1-180`: Sets a custom (vertical) FOV. 60V is roughly 90H.
-* `SprintFOVMultiplier: [1.3], 0.1-2.0`: Sets the sprinting FOV multiplier. Set to 1 to disable.
 * `DisableSprintingCrosshair: [true]/false`: Disables the useless special sprinting chevron crosshair.
-* `DisableSpeedlines: true/[false]`: Disables the speedlines effect shown when sprinting.
-
-### Misc
-
-* `DisabledAutoSprinting: true/[false]`: Disables the autosprinting part of the mod.
-* `DisableVisualChanges: true/[false]`: Disables the FOV/visual modification side of the mod.
-
-## Known Issues / ToDo
-
-* Disabling FOV change while sprinting not implemented. Anyone knows where it's done, do tell.
 
 ## Changelog
 
